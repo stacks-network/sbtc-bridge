@@ -393,8 +393,10 @@ const ReclaimDeposit = ({
       if (response && response.result) {
         const signedTxHex = response.result.hex;
 
+        console.log("signedTxHex", signedTxHex);
         const finalizedTxHex = finalizePsbt(signedTxHex);
 
+        console.log("finalizedTxHex", finalizedTxHex);
         const transactionId = createTransactionFromHex(finalizedTxHex);
 
         // set a query params to the transaction id as reclaimTxId and updated the status
