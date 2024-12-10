@@ -399,6 +399,7 @@ const ReclaimDeposit = ({
         console.log("finalizedTxHex", finalizedTxHex);
         const transactionId = createTransactionFromHex(finalizedTxHex);
 
+        console.log("transactionId", transactionId);
         // set a query params to the transaction id as reclaimTxId and updated the status
 
         router.push(`/reclaim?reclaimTxId=${transactionId}`);

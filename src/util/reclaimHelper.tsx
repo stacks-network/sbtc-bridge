@@ -23,7 +23,7 @@ export const finalizePsbt = (psbtHex: string) => {
 
 export const createTransactionFromHex = (hex: string) => {
   const transaction = bitcoin.Transaction.fromHex(hex);
-  return transaction;
+  return transaction.getId();
 };
 type ReclaimDepositProps = {
   feeAmount: number;
