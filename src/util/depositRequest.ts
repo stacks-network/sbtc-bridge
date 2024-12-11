@@ -62,8 +62,16 @@ export const createDepositScript = (
 };
 //the max fee is 8 bytes, big endian
 
-export const createReclaimScript = (lockTime: number): Uint8Array => {
+export const createReclaimScript = (
+  lockTime: number,
+  userPublicKey: string,
+): Uint8Array => {
   const { script, opcodes } = bitcoin;
+
+  // Convert the user public key to a Uint8Array
+  const pubkey = hexToUint8Array(userPublicKey);
+  // remove the 0x04 prefix
+  const schnorPublicKey = pubkey.slice(1);
 
   // Encode lockTime using bitcoin.script.number.encode (ensure minimal encoding)
   const lockTimeEncoded = script.number.encode(lockTime);
@@ -73,7 +81,8 @@ export const createReclaimScript = (lockTime: number): Uint8Array => {
     lockTimeEncoded,
     opcodes.OP_CHECKSEQUENCEVERIFY,
     opcodes.OP_DROP,
-    opcodes.OP_1,
+    schnorPublicKey,
+    opcodes.OP_CHECKSIG,
   ]);
 
   //throw new Error("Not implemented");
@@ -87,11 +96,14 @@ export const createDepositAddress = (
   maxFee: number,
   lockTime: number,
   network: bitcoin.networks.Network,
+  reclaimPublicKey: string,
 ): string => {
   const internalPubkey = hexToUint8Array(signerPubKey);
 
   // Create the reclaim script and convert to Buffer
-  const reclaimScript = Buffer.from(createReclaimScript(lockTime));
+  const reclaimScript = Buffer.from(
+    createReclaimScript(lockTime, reclaimPublicKey),
+  );
 
   // Create the deposit script and convert to Buffer
 

@@ -250,13 +250,15 @@ const DepositFlowConfirm = ({
         return;
       }
 
-      // const reclaimPublicKey = paymentAddress.publicKey;
+      const reclaimPublicKey = paymentAddress.publicKey;
 
       // Parse lockTime from env variable
       const parsedLockTime = parseInt(lockTime || "144");
 
       // Create the reclaim script and convert to Buffer
-      const reclaimScript = Buffer.from(createReclaimScript(parsedLockTime));
+      const reclaimScript = Buffer.from(
+        createReclaimScript(parsedLockTime, reclaimPublicKey),
+      );
 
       const reclaimScriptHex = uint8ArrayToHexString(reclaimScript);
 
@@ -273,6 +275,7 @@ const DepositFlowConfirm = ({
         maxFee,
         parsedLockTime,
         getBitcoinNetwork(config.WALLET_NETWORK),
+        reclaimPublicKey,
       );
 
       let txId = "";

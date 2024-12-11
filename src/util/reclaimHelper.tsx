@@ -12,6 +12,7 @@ export const finalizePsbt = (psbtHex: string) => {
     const network = bitcoin.networks.regtest;
 
     const psbt = bitcoin.Psbt.fromHex(psbtHex, { network });
+    psbt.finalizeAllInputs();
 
     return psbt.extractTransaction().toHex();
   } catch (err) {
@@ -22,7 +23,7 @@ export const finalizePsbt = (psbtHex: string) => {
 
 export const createTransactionFromHex = (hex: string) => {
   const transaction = bitcoin.Transaction.fromHex(hex);
-  return transaction;
+  return transaction.getId();
 };
 type ReclaimDepositProps = {
   feeAmount: number;
@@ -110,7 +111,7 @@ export const constructPsbtForReclaim = ({
 
   const leafIndexFinalizerFn = buildLeafIndexFinalizer(tapLeafScript, lockTime);
 
-  psbt.finalizeInput(0, leafIndexFinalizerFn);
+  //psbt.finalizeInput(0, leafIndexFinalizerFn);
 
   // Add the fee payer inputs
 
