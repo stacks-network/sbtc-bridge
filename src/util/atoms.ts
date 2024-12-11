@@ -15,6 +15,7 @@ export const bridgeConfigAtom = atom<BridgeConfig>({
   SBTC_CONTRACT_DEPLOYER: undefined,
   BANNER_CONTENT: undefined,
   RECLAIM_LOCK_TIME: undefined,
+  MEMPOOL_URL: undefined,
 });
 export const depositMaxFeeAtom = atom(80000);
 

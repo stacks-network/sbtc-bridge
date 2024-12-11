@@ -12,6 +12,7 @@ export default cache(async function getSbtcBridgeConfig() {
   const SBTC_CONTRACT_DEPLOYER = env.SBTC_CONTRACT_DEPLOYER;
   const BANNER_CONTENT = env.BANNER_CONTENT;
   const RECLAIM_LOCK_TIME = env.RECLAIM_LOCK_TIME;
+  const MEMPOOL_URL = env.MEMPOOL_URL;
 
   return {
     EMILY_URL,
@@ -19,5 +20,6 @@ export default cache(async function getSbtcBridgeConfig() {
     SBTC_CONTRACT_DEPLOYER,
     BANNER_CONTENT,
     RECLAIM_LOCK_TIME,
+    MEMPOOL_URL,
   };
 });

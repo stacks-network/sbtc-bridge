@@ -6,6 +6,8 @@ export const env = {
   EMILY_URL: process.env.EMILY_URL,
   MEMPOOL_API_URL:
     process.env.MEMPOOL_API_URL || "http://localhost:8083/api/v1/",
+  MEMPOOL_URL: process.env.MEMPOOL_URL,
+
   BITCOIN_RPC_USER_NAME: process.env.BITCOIN_RPC_USER_NAME || "devnet",
   BITCOIN_RPC_PASSWORD: process.env.BITCOIN_RPC_PASSWORD || "devnet",
   WALLET_NETWORK: (process.env.WALLET_NETWORK || "sbtcDevenv") as

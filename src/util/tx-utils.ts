@@ -60,3 +60,31 @@ export const getEmilyDepositInfo = async ({
   const data = (await response.json()) as EmilyTxRes;
   return data;
 };
+
+export const getReclaimInfo = async ({
+  reclaimTxId,
+}: {
+  reclaimTxId: string;
+}) => {
+  try {
+    const url = `/api/tx?txId=${reclaimTxId}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Error with the request");
+    }
+
+    const responseData = await response.json();
+
+    return responseData;
+  } catch (error) {
+    console.warn("Error in getReclaimInfo:", error);
+    return null;
+  }
+};

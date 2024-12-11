@@ -3,7 +3,7 @@ import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
 import { useMemo } from "react";
 
-function Step({
+export function Step({
   name,
   index,
   currentStep,
