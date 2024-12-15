@@ -5,7 +5,8 @@ import Faqs from "./Faqs";
 import DepositFlow from "./Deposit";
 import { TransferAction } from "./TransferHome";
 import LandingAnimation from "./core/LandingAnimation";
-// import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import AppNav from "./core/app-nav";
 
 export enum SECTION {
   DEPOSIT = "DEPOSIT",
@@ -48,6 +49,10 @@ const HomeApp = () => {
 
   return (
     <>
+      <AppNav
+        section={selectedSection}
+        onClickSection={(section) => setSelectedSection(section)}
+      />
       <LandingAnimation>
         {/* <SelectedSection
           section={selectedSection}
@@ -63,7 +68,7 @@ const HomeApp = () => {
         )} */}
         {selectedSection === SECTION.TRANSFER && <TransferAction />}
       </LandingAnimation>
-      <Faqs />
+      {/* <Faqs /> */}
     </>
   );
 };

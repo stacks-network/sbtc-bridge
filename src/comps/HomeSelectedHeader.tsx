@@ -9,7 +9,7 @@ const sectionTextStyle = (isActive: boolean) =>
 const sectionStyle = (isActive: boolean) =>
   isActive ? " border-orange" : " border-gray";
 
-type SectionActionProps = {
+export type SectionActionProps = {
   section: SECTION;
   onClickSection?: (section: SECTION) => void;
   activeSection: SECTION;
@@ -41,21 +41,17 @@ export const SectionAction = ({
   );
 };
 
-// type SectionSelection = {
-//   section: SECTION;
-//   onClickSection: (section: SECTION) => void;
-// };
-const SelectedSection = () =>
-  // {
-  // section, onClickSection
-  // }: SectionSelection,
-  {
-    // const handleClickSection = (section: SECTION) => {
-    //   onClickSection(section);
-    // };
-    return (
-      <div className="flex  flex-row items-center justify-center">
-        {/* <SectionAction
+export type SectionSelection = {
+  section: SECTION;
+  onClickSection: (section: SECTION) => void;
+};
+const SelectedSection = ({ section, onClickSection }: SectionSelection) => {
+  const handleClickSection = (section: SECTION) => {
+    onClickSection(section);
+  };
+  return (
+    <div className="flex  flex-row items-center justify-center">
+      <SectionAction
         section={SECTION.DEPOSIT}
         activeSection={section}
         text="Deposit"
