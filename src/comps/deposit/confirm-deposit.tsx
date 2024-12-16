@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { CheckIcon, PencilIcon } from "@heroicons/react/20/solid";
 import { DEPOSIT_STEP, DepositFlowConfirmProps } from "../Deposit";
@@ -11,6 +11,9 @@ import {
   walletInfoAtom,
   WalletProvider,
 } from "@/util/atoms";
+
+import { STACKS_TESTNET, STACKS_MAINNET } from "@stacks/network";
+
 import { NotificationStatusType } from "../Notifications";
 import { getAggregateKey } from "@/util/get-aggregate-key";
 import { principalCV, serializeCVBytes } from "@stacks/transactions";
@@ -36,6 +39,8 @@ const ConfirmDeposit = ({
 }: DepositFlowConfirmProps) => {
   const { notify } = useNotifications();
 
+  const [isEmilySyncWNetwork, setIsEmilySyncWNetwork] = useState(false);
+
   const {
     EMILY_URL: emilyUrl,
     WALLET_NETWORK: walletNetwork,
@@ -45,6 +50,49 @@ const ConfirmDeposit = ({
   const maxFee = useAtomValue(depositMaxFeeAtom);
   const config = useAtomValue(bridgeConfigAtom);
   const walletInfo = useAtomValue(walletInfoAtom);
+
+  useEffect(() => {
+    checkEmilyStatus();
+  }, []);
+
+  const checkEmilyStatus = async () => {
+    try {
+      // Ensure that network chaintip and emily chaintip are in sync
+      const stacksNetworkRPC =
+        walletNetwork !== "mainnet"
+          ? STACKS_TESTNET.client.baseUrl
+          : STACKS_MAINNET.client.baseUrl;
+      const response = await fetch(`${stacksNetworkRPC}/extended`);
+      const data = await response.json();
+
+      console.log("data", data);
+      const stacksChainTip = data.chain_tip.block_height;
+
+      const emilyResponse = await fetch(`${emilyUrl}/chainstate`);
+
+      const emilyData = await emilyResponse.json();
+
+      console.log("emilyData", emilyData);
+
+      const emilyChainTip = emilyData.stacksBlockHeight;
+
+      console.log("stacksChainTip", stacksChainTip);
+      console.log("emilyChainTip", emilyChainTip);
+
+      if (stacksChainTip !== emilyChainTip) {
+        notify({
+          type: NotificationStatusType.ERROR,
+          message: `Emily is out of sync with the network. Please try again later`,
+        });
+        setIsEmilySyncWNetwork(false);
+        //setStep(DEPOSIT_STEP.AMOUNT);
+      } else if (stacksChainTip === emilyChainTip) {
+        setIsEmilySyncWNetwork(true);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const handleNextClick = async () => {
     try {
@@ -225,12 +273,23 @@ const ConfirmDeposit = ({
             BACK
           </button>
           <ConnectWalletAction>
-            <button
-              onClick={() => handleNextClick()}
-              className="bg-darkOrange w-full h-14 flex flex-row items-center justify-center rounded-lg "
-            >
-              CONFIRM TRANSACTION
-            </button>
+            {isEmilySyncWNetwork ? (
+              <button
+                onClick={() => handleNextClick()}
+                className="bg-darkOrange w-full h-14 flex flex-row items-center justify-center rounded-lg "
+              >
+                CONFIRM TRANSACTION
+              </button>
+            ) : (
+              <div
+                style={{
+                  border: "2px solid rgba(255, 255, 255, 0.2)",
+                }}
+                className=" w-full h-14 flex flex-row items-center justify-center rounded-lg "
+              >
+                EMILY IS OUT OF SYNC
+              </div>
+            )}
           </ConnectWalletAction>
         </div>
       </div>
