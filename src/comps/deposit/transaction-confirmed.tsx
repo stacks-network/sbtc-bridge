@@ -92,7 +92,10 @@ const TransactionConfirmed = ({
               }}
               className="bg-[#1E1E1E] px-6 gap-4 flex flex-row items-center justify-center h-10"
             >
-              <p className="text-white font-bold text-sm "> {txId}</p>
+              <p className="text-white font-bold text-sm ">
+                {" "}
+                {useShortAddress(txId)}
+              </p>
             </div>
           </a>
         </div>

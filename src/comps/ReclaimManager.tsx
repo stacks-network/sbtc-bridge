@@ -61,6 +61,8 @@ const ReclaimManager = () => {
 
   const [amount, setAmount] = useState<number>(0);
 
+  const { EMILY_URL: emilyUrl } = useAtomValue(bridgeConfigAtom);
+
   useEffect(() => {
     // get the txId from the query params
 
@@ -208,7 +210,7 @@ const ReclaimManager = () => {
       */
 
       const response = await fetch(
-        `/api/emilyDeposit?bitcoinTxid=${depositTxId}&vout=${outputIndex}`,
+        `${emilyUrl}deposit/${depositTxId}/${outputIndex}`,
         {
           method: "GET",
           headers: {
@@ -216,11 +218,13 @@ const ReclaimManager = () => {
           },
         },
       );
+
       if (!response.ok) {
         throw new Error("Error with the request");
       }
 
       const responseData = await response.json();
+      console.log("emily esponse", responseData);
 
       setAmount(amount);
 
@@ -229,6 +233,7 @@ const ReclaimManager = () => {
       const emilyRes = responseData as EmilyDepositTransactionType;
 
       if (emilyRes.status === "pending") setStep(RECLAIM_STEP.RECLAIM);
+      if (emilyRes.status === "confirmed") setStep(RECLAIM_STEP.CANT_RECLAIM);
 
       fetchDepositAmount();
     } catch (err) {
