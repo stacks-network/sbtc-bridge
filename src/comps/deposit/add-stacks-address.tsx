@@ -1,5 +1,3 @@
-import { useState } from "react";
-import Image from "next/image";
 import { CheckIcon, PencilIcon } from "@heroicons/react/20/solid";
 import { DEPOSIT_STEP, DepositFlowAddressProps } from "../Deposit";
 import { useAtomValue } from "jotai";

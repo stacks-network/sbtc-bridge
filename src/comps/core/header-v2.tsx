@@ -17,8 +17,8 @@ import { useNotifications } from "@/hooks/use-notifications";
 import ConnectWallet from "../ConnectWallet";
 
 const Header = ({ config }: { config: BridgeConfig }) => {
-  const isTestnet =
-    config.WALLET_NETWORK?.toLowerCase() === "sbtcTestnet".toLowerCase();
+  // const isTestnet =
+  //   config.WALLET_NETWORK?.toLowerCase() === "sbtcTestnet".toLowerCase();
 
   const { notify } = useNotifications();
 

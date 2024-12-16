@@ -1,6 +1,5 @@
-import { useMemo, useState } from "react";
-import Image from "next/image";
-import { CheckIcon, PencilIcon } from "@heroicons/react/20/solid";
+import { useMemo } from "react";
+import { CheckIcon } from "@heroicons/react/20/solid";
 import { DepositFlowReviewProps } from "../Deposit";
 import { useShortAddress } from "@/hooks/use-short-address";
 import { useAtomValue } from "jotai";

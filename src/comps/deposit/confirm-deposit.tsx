@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { CheckIcon, PencilIcon } from "@heroicons/react/20/solid";
 import { DEPOSIT_STEP, DepositFlowConfirmProps } from "../Deposit";
 import { useShortAddress } from "@/hooks/use-short-address";

@@ -19,7 +19,7 @@ const DepositAmount = ({
 }: DepositFlowAmounExtendedtProps) => {
   console.log("amount", amount);
 
-  const { currentCap, isWithinDepositLimits, isLoading } = useMintCaps();
+  const { currentCap, isWithinDepositLimits } = useMintCaps();
   const minDepositAmount = 100_000 / 1e8;
   const maxDepositAmount = currentCap / 1e8;
 
@@ -27,7 +27,7 @@ const DepositAmount = ({
 
   const { notify } = useNotifications();
 
-  const walletInfo = useAtomValue(walletInfoAtom);
+  // const walletInfo = useAtomValue(walletInfoAtom);
 
   useEffect(() => {
     const parsedAmount = amount / 1e8;

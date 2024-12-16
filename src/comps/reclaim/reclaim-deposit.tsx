@@ -8,7 +8,7 @@ import {
   walletInfoAtom,
   WalletProvider,
 } from "@/util/atoms";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   constructPsbtForReclaim,
   createTransactionFromHex,
