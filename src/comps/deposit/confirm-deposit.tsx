@@ -250,7 +250,7 @@ const ConfirmDeposit = ({
           className="w-full py-4 px-6  gap-2 flex flex-row items-center justify-between rounded-2xl  h-full"
         >
           <p className="text-white font-semibold  text-sm">
-            Selected Deposit Amount
+            Selected Deposit Address
           </p>
 
           <div

@@ -450,7 +450,7 @@ type TransactionInfo = {
   hex: string;
   txId: string;
 };
-type DepositFlowReviewProps = DepositFlowStepProps & {
+export type DepositFlowReviewProps = DepositFlowStepProps & {
   txId: string;
   amount: number;
   stxAddress: string;
@@ -551,7 +551,7 @@ const DepositFlow = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [step, _setStep] = useState(DEPOSIT_STEP.AMOUNT);
+  const [step, _setStep] = useState(DEPOSIT_STEP.REVIEW);
 
   const [stxAddress, _setStxAddress] = useState(
     searchParams.get("stxAddress") ?? "",
@@ -652,7 +652,14 @@ const DepositFlow = () => {
           />
         );
       case DEPOSIT_STEP.REVIEW:
-        return <TransactionConfirmed />;
+        return (
+          <TransactionConfirmed
+            amount={amount}
+            stxAddress={stxAddress}
+            setStep={handleUpdateStep}
+            txId={txId}
+          />
+        );
       default:
         return <div> Something went wrong</div>;
     }
@@ -667,49 +674,9 @@ const DepositFlow = () => {
         className="w-full flex flex-row gap-4 mt-16"
       >
         {renderStep()}
-        <DepositTimeline activeStep={step} />
+        <DepositTimeline txId={txId} activeStep={step} />
       </div>
-      {/* <div
-        style={{
-          maxWidth: "1152px",
-        }}
-        className="w-full flex flex-row gap-4 mt-16"
-      >
-        <DepositAddress
-          stxAddress={stxAddress}
-          setStxAddress={setStxAddress}
-          setStep={handleUpdateStep}
-          amount={amount}
-        />
-        <DepositTimeline activeStep={step} />
-      </div> */}
-      {/* <div
-        style={{
-          maxWidth: "1152px",
-        }}
-        className="w-full flex flex-row gap-4 mt-16"
-      >
-        <ConfirmDeposit
-          amount={amount}
-          stxAddress={stxAddress}
-          setStep={handleUpdateStep}
-          handleUpdatingTransactionInfo={handleUpdatingTransactionInfo}
-        />
-        <DepositTimeline activeStep={step} />
-      </div> */}
-      {/* <div
-        style={{
-          maxWidth: "1152px",
-        }}
-        className="w-full flex flex-row gap-4 mt-16"
-      >
-        <TransactionConfirmed />
-        <DepositTimeline activeStep={step} />
-      </div> */}
 
-      {
-        //renderStep()
-      }
       <div
         style={{
           margin: "16px 0",

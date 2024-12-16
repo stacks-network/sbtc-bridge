@@ -1,5 +1,9 @@
 import { useMemo } from "react";
 import { DEPOSIT_STEP } from "../Deposit";
+import { DepositStatus, useDepositStatus } from "@/hooks/use-deposit-status";
+import { CheckIcon } from "@heroicons/react/20/solid";
+import { useAtomValue } from "jotai";
+import { bridgeConfigAtom } from "@/util/atoms";
 
 type TimelineStepProps = {
   stepNumber: number;
@@ -31,13 +35,104 @@ const TimelineStep = ({
           }}
           className=" text-black flex flex-row items-center justify-center "
         >
-          <p className="text-white font-semibold  text-xs">{stepNumber}</p>
+          <p className="text-black font-semibold  text-xs">{stepNumber}</p>
         </div>
-        <div className="bg-white h-14  w-[2px]" />
+        <div
+          style={{
+            backgroundColor:
+              isActive || activeStep > step ? "#FC6432" : "#525153",
+          }}
+          className="bg-white h-14  w-[2px]"
+        />
       </div>
       <div className="flex flex-col h-auto w-64 gap-2">
         <p className="text-white m-0 text-sm font-semibold ">{title}</p>
+
         <p className="text-white m-0 font-thin  text-sm">{description}</p>
+      </div>
+    </div>
+  );
+};
+
+// this is cop out for the loader component to be able to get active state of the txId of the loader
+const CurrentDepositTimelineStep = ({
+  stepNumber,
+  title,
+  description,
+  step,
+  activeStep,
+  txId,
+}: TimelineStepProps & { txId: string }) => {
+  const isActive = step === activeStep;
+
+  const status = useDepositStatus(txId);
+
+  const { PUBLIC_MEMPOOL_URL } = useAtomValue(bridgeConfigAtom);
+
+  const mempoolUrl = useMemo(() => {
+    return `${PUBLIC_MEMPOOL_URL}/tx/${txId}`;
+  }, [PUBLIC_MEMPOOL_URL, txId]);
+
+  const renderCurrentStatus = () => {
+    if (
+      status === DepositStatus.PendingConfirmation ||
+      status === DepositStatus.PendingMint
+    ) {
+      return (
+        <>
+          <div
+            className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
+            role="status"
+          ></div>
+          <h3 className="font-Matter text-white text-lg font-thin tracking-wide">
+            PROCESSING
+          </h3>
+          <a href={mempoolUrl} target="_blank" rel="noreferrer">
+            <p className="text-white m-0 font-thin  text-sm">
+              (Estimation:{" "}
+              <span className="text-darkOrange text-bold">5 min</span>)
+            </p>
+          </a>
+        </>
+      );
+    } else if (status === DepositStatus.Completed) {
+      <>
+        <CheckIcon className="w-16 h-16 flex flex-row items-center justify-center rounded-full text-darkOrange " />
+        <h3 className="font-Matter text-white text-lg font-thin tracking-wide">
+          COMPLETED
+        </h3>
+        <a href={mempoolUrl} target="_blank" rel="noreferrer">
+          <p className="text-white m-0 font-thin  text-sm">
+            (View In :{" "}
+            <span className="text-darkOrange text-bold">mempool</span>)
+          </p>
+        </a>
+      </>;
+    }
+  };
+  return (
+    <div className="flex flex-row gap-4 w-96 h-fit">
+      <div className="flex flex-col items-center h-min">
+        <div
+          style={{
+            width: "35px",
+            height: "35px",
+            borderRadius: "50%",
+            backgroundColor:
+              isActive || activeStep > step ? "#FC6432" : "#525153",
+          }}
+          className=" text-black flex flex-row items-center justify-center "
+        >
+          <p className="text-black font-semibold  text-xs">{stepNumber}</p>
+        </div>
+        <div className="bg-white h-40  w-[2px]" />
+      </div>
+      <div className="flex flex-col h-auto w-64 gap-2">
+        <p className="text-white m-0 text-sm font-semibold ">{title}</p>
+
+        <div className="flex w-full h-40 flex-col items-center justify-center gap-2">
+          {renderCurrentStatus()}
+        </div>
       </div>
     </div>
   );
@@ -45,8 +140,9 @@ const TimelineStep = ({
 
 type DepositTimelineProps = {
   activeStep: DEPOSIT_STEP;
+  txId: string;
 };
-const DepositTimeline = ({ activeStep }: DepositTimelineProps) => {
+const DepositTimeline = ({ activeStep, txId }: DepositTimelineProps) => {
   const activeStepNumber = useMemo(() => {
     switch (activeStep) {
       case DEPOSIT_STEP.AMOUNT:
@@ -89,14 +185,26 @@ const DepositTimeline = ({ activeStep }: DepositTimelineProps) => {
           title="Provide a Deposit Address"
           description="sBTC will be sent to a STX address. Connecting a wallet will auto-fill this in, but feel free to submit another address."
         />
-        <TimelineStep
-          activeStep={activeStep}
-          stepNumber={3}
-          step={DEPOSIT_STEP.CONFIRM}
-          activeStepNumber={activeStepNumber}
-          title="Operation Status:"
-          description="We will confirm the transaction status once the transaction is confirmed."
-        />
+        {activeStep === DEPOSIT_STEP.REVIEW ? (
+          <CurrentDepositTimelineStep
+            txId={txId}
+            activeStep={activeStep}
+            stepNumber={3}
+            step={DEPOSIT_STEP.CONFIRM}
+            activeStepNumber={activeStepNumber}
+            title="Operation Status:"
+            description="We will confirm the transaction status once the transaction is confirmed."
+          />
+        ) : (
+          <TimelineStep
+            activeStep={activeStep}
+            stepNumber={3}
+            step={DEPOSIT_STEP.CONFIRM}
+            activeStepNumber={activeStepNumber}
+            title="Operation Status:"
+            description="We will confirm the transaction status once the transaction is confirmed."
+          />
+        )}
       </div>
     </div>
   );
