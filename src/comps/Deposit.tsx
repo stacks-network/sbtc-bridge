@@ -551,7 +551,7 @@ const DepositFlow = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [step, _setStep] = useState(DEPOSIT_STEP.REVIEW);
+  const [step, _setStep] = useState(DEPOSIT_STEP.AMOUNT);
 
   const [stxAddress, _setStxAddress] = useState(
     searchParams.get("stxAddress") ?? "",

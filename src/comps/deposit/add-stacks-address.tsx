@@ -113,7 +113,7 @@ const DepositAddress = ({
             Provide a Deposit Address
           </p>
           <input
-            className="bg-transparent placeholder:text-xl text-center focus:outline-none  w-full h-full text-xl rounded-tl-xl rounded-tr-2xl text-[#FD9D41] "
+            className="bg-transparent placeholder:text-xl text-center focus:outline-none  w-full h-full text-lg rounded-tl-xl rounded-tr-2xl text-[#FD9D41] "
             type="text"
             placeholder="Enter Address"
             value={stxAddress}
