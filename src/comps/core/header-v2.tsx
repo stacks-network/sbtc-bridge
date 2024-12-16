@@ -91,12 +91,12 @@ const Header = ({ config }: { config: BridgeConfig }) => {
             <h4 className="font-Matter text-xs text-black tracking-wide ">
               HISTORY
             </h4> */}
-            <h3 className="font-Matter cursor-pointer text-white text-sm font-thin tracking-wide">
+            {/* <h3 className="font-Matter cursor-pointer text-white text-sm font-thin tracking-wide">
               LEARN MORE
             </h3>
             <h3 className="font-Matter cursor-pointer text-white text-sm font-thin tracking-wide">
               HISTORY
-            </h3>
+            </h3> */}
             {isConnected ? (
               renderUserWalletInfo()
             ) : (

@@ -15,6 +15,7 @@ export enum SECTION {
   STATUS = "STATUS",
   TRANSFER = "TRANSFER",
   SETTINGS = "SETTINGS",
+  RECLAIM = "RECLAIM",
 }
 
 type SECTION_DATA = {
@@ -64,6 +65,7 @@ const HomeApp = () => {
         {selectedSection === SECTION.HISTORY && <HistoryView />}
         {selectedSection === SECTION.TRANSFER && <TransferAction />}
       </LandingAnimation>
+      <div className="m-8" />
       <Faqs />
     </>
   );

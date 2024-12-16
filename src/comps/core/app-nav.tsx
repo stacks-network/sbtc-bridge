@@ -2,7 +2,7 @@ import { classNames } from "@/util";
 import { SECTION } from "../HomeApp";
 import { SectionActionProps, SectionSelection } from "../HomeSelectedHeader";
 
-const NavTile = ({
+export const NavTile = ({
   section,
   activeSection,
   text,

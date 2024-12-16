@@ -30,12 +30,16 @@ import {
   signPSBTLeather,
   signPSBTXverse,
 } from "@/util/wallet-utils/src/sign-psbt";
+import ReclaimDeposit from "./reclaim/reclaim-deposit";
+import ReclaimTimeline from "./reclaim/reclaim-timeline";
+import { NavTile } from "./core/app-nav";
+import { SECTION } from "./HomeApp";
 
 /*
   Goal : User server side rendering as much as possible
   - Break down the components into either their own file or smaller components
 */
-enum RECLAIM_STEP {
+export enum RECLAIM_STEP {
   LOADING = "LOADING",
   NOT_FOUND = "NOT_FOUND",
   RECLAIM = "RECLAIM",
@@ -158,6 +162,8 @@ const ReclaimManager = () => {
 
       const reclaimTransaction = (await getRawTransaction(reclaimTxId))!;
 
+      console.log("reclaimTransaction", reclaimTransaction);
+
       if (reclaimTransaction) {
         setStep(RECLAIM_STEP.CURRENT_STATUS);
 
@@ -191,6 +197,8 @@ const ReclaimManager = () => {
         return;
       }
       const responseData = (await getRawTransaction(depositTxId))!;
+
+      console.log("responseData", responseData);
 
       // get the amount from vout array
       const vout = responseData.vout;
@@ -251,10 +259,41 @@ const ReclaimManager = () => {
       setStep(RECLAIM_STEP.NOT_FOUND);
     }
   };
+
+  const handleClickSection = (section: SECTION) => {};
+
   return (
-    <div className="flex flex-1 flex-col w-full px-5 gap-6 items-center py-5">
-      {renderStep()}
-    </div>
+    <>
+      <div
+        style={{
+          borderTop: "1px solid rgba(255, 255, 255, 0.2)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
+        }}
+        className="w-full bg-[#272628] h-20 flex items-center justify-center
+      "
+      >
+        <NavTile
+          section={SECTION.DEPOSIT}
+          activeSection={SECTION.DEPOSIT}
+          text="DEPOSIT"
+          onClickSection={handleClickSection}
+        />
+      </div>
+      <div className="flex flex-1 mb-10 flex-col w-full px-5 gap-6 items-center py-5">
+        <div
+          style={{
+            maxWidth: "1152px",
+          }}
+          className="w-full flex flex-row gap-4 mt-16"
+        >
+          {renderStep()}
+          <ReclaimTimeline
+            activeStep={step}
+            txId={searchParams.get("depositTxId") || ""}
+          />
+        </div>
+      </div>
+    </>
   );
 };
 
@@ -262,65 +301,85 @@ export default ReclaimManager;
 
 const LoadingInfo = () => {
   return (
-    <FlowContainer>
-      <div className="flex h-full flex-col gap-2 items-center justify-center">
+    <div className="w-full flex flex-col  gap-4 ">
+      <div className="flex  flex-row w-full gap-4 h-40">
+        <div className="w-1/6  relative flex flex-col items-center justify-center h-full"></div>
         <div
-          className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-orange"
-          role="status"
-        ></div>
-        <SubText>Loading Info</SubText>
+          style={{
+            border: "2px solid rgba(255, 255, 255, 0.2)",
+          }}
+          className="w-full h-min p-5 px-10 items-center justify-center pb-10 flex flex-col gap-6 rounded-2xl"
+        >
+          <div
+            className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
+            role="status"
+          ></div>
+          <h3 className="font-Matter text-white text-lg font-thin tracking-wide">
+            LOADING
+          </h3>
+        </div>
       </div>
-    </FlowContainer>
+    </div>
   );
 };
 
 const NotFound = () => {
   return (
-    <FlowContainer>
-      <>
-        <div className="w-full flex flex-row items-center justify-between">
-          <Heading>Transaction could not be found</Heading>
+    <div className="w-full flex flex-col  gap-4 ">
+      <div className="flex  flex-row w-full gap-4 h-40">
+        <div className="w-1/6  relative flex flex-col items-center justify-center h-full"></div>
+        <div
+          style={{
+            border: "2px solid rgba(255, 255, 255, 0.2)",
+          }}
+          className="w-full h-min p-5 px-10 items-center justify-center pb-10 flex flex-col gap-6 rounded-2xl"
+        >
+          <h3 className="font-Matter text-white text-lg font-thin tracking-wide">
+            Transaction could not be found
+          </h3>
+          <p className="text-orange text-center font-Matter font-semibold text-sm break-keep">
+            The transaction you are looking for could not be found. Please check
+            the transaction details and try again. If you believe this is an
+            error please contact a team member.
+          </p>
         </div>
-        <div className="flex flex-1 ">
-          <div className="w-full p-4 bg-lightOrange h-24 rounded-lg flex flex-row items-center justify-center gap-2">
-            <InformationCircleIcon className="h-10 w-10 text-orange" />
-            <p className="text-orange font-Matter font-semibold text-sm break-keep">
-              The transaction you are looking for could not be found. Please
-              check the transaction details and try again. If you believe this
-              is an error please contact a team member.
-            </p>
-          </div>
-        </div>
-      </>
-    </FlowContainer>
+      </div>
+    </div>
   );
 };
 
 const CantReclaim = () => {
   return (
-    <FlowContainer>
-      <>
-        <div className="w-full flex flex-row items-center justify-between">
-          <Heading>Cannot Reclaim Deposit</Heading>
+    <div className="w-full flex flex-col  gap-4 ">
+      <div className="flex  flex-row w-full gap-4 h-40">
+        <div className="w-1/6  relative flex flex-col items-center justify-center h-full"></div>
+        <div
+          style={{
+            border: "2px solid rgba(255, 255, 255, 0.2)",
+          }}
+          className="w-full h-min p-5 px-10 items-center justify-center pb-10 flex flex-col gap-6 rounded-2xl"
+        >
+          <InformationCircleIcon className="h-10 w-10 text-orange" />
+
+          <h3 className="font-Matter text-white text-lg font-thin tracking-wide">
+            Cannot Reclaim Deposit
+          </h3>
+
+          <p className="text-orange text-center font-Matter font-semibold text-sm break-keep">
+            This deposit cannot be reclaimed since it has been minted for sBTC
+            and deposited into the Stacks chain.
+          </p>
         </div>
-        <div className="flex flex-1 ">
-          <div className="w-full p-4 bg-lightOrange h-24 rounded-lg flex flex-row items-center justify-center gap-2">
-            <InformationCircleIcon className="h-10 w-10 text-orange" />
-            <p className="text-orange font-Matter font-semibold text-sm break-keep">
-              This deposit cannot be reclaimed since it has been minted for sBTC
-              and deposited into the Stacks chain.
-            </p>
-          </div>
-        </div>
-      </>
-    </FlowContainer>
+      </div>
+    </div>
   );
 };
-type ReclaimDepositProps = {
+export type ReclaimDepositProps = {
   amount: number;
   depositTransaction: EmilyDepositTransactionType;
 };
 
+/*
 const ReclaimDeposit = ({
   amount,
   depositTransaction,
@@ -490,3 +549,4 @@ const ReclaimDeposit = ({
     </FlowContainer>
   );
 };
+*/

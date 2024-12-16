@@ -5,21 +5,22 @@ import { CheckIcon } from "@heroicons/react/20/solid";
 import { useAtomValue } from "jotai";
 import { bridgeConfigAtom } from "@/util/atoms";
 
-type TimelineStepProps = {
+type TimelineStepProps<T extends string | number> = {
   stepNumber: number;
   title: string;
   description: string;
-  step: DEPOSIT_STEP;
-  activeStep: DEPOSIT_STEP;
+  step: T;
+  activeStep: T;
   activeStepNumber: number;
 };
-const TimelineStep = ({
+
+export const TimelineStep = <T extends string | number>({
   stepNumber,
   title,
   description,
   step,
   activeStep,
-}: TimelineStepProps) => {
+}: TimelineStepProps<T>) => {
   const isActive = step === activeStep;
 
   return (
@@ -55,14 +56,14 @@ const TimelineStep = ({
 };
 
 // this is cop out for the loader component to be able to get active state of the txId of the loader
-const CurrentDepositTimelineStep = ({
+export const CurrentDepositTimelineStep = <T extends string | number>({
   stepNumber,
   title,
   description,
   step,
   activeStep,
   txId,
-}: TimelineStepProps & { txId: string }) => {
+}: TimelineStepProps<T> & { txId: string }) => {
   const isActive = step === activeStep;
 
   const status = useDepositStatus(txId);
@@ -165,11 +166,11 @@ const DepositTimeline = ({ activeStep, txId }: DepositTimelineProps) => {
       }}
       className="w-2/5 h-min p-5 px-10 pb-10 flex flex-col gap-6 rounded-2xl"
     >
-      <h3 className="font-Matter text-white text-lg font-thin tracking-wide">
+      <h3 className="font-Matter text-wthite text-lg font-thin tracking-wide">
         TIMELINE
       </h3>
       <div className="flex flex-col gap-3">
-        <TimelineStep
+        <TimelineStep<DEPOSIT_STEP>
           activeStep={activeStep}
           stepNumber={1}
           step={DEPOSIT_STEP.AMOUNT}
@@ -177,7 +178,7 @@ const DepositTimeline = ({ activeStep, txId }: DepositTimelineProps) => {
           title="Select Deposit Amount"
           description="How much BTC are you transferring over to sBTC? Enter an amount that’s above the dust requirement (546 sats)"
         />
-        <TimelineStep
+        <TimelineStep<DEPOSIT_STEP>
           activeStep={activeStep}
           stepNumber={2}
           step={DEPOSIT_STEP.ADDRESS}
@@ -186,7 +187,7 @@ const DepositTimeline = ({ activeStep, txId }: DepositTimelineProps) => {
           description="sBTC will be sent to a STX address. Connecting a wallet will auto-fill this in, but feel free to submit another address."
         />
         {activeStep === DEPOSIT_STEP.REVIEW ? (
-          <CurrentDepositTimelineStep
+          <CurrentDepositTimelineStep<DEPOSIT_STEP>
             txId={txId}
             activeStep={activeStep}
             stepNumber={3}
@@ -196,7 +197,7 @@ const DepositTimeline = ({ activeStep, txId }: DepositTimelineProps) => {
             description="We will confirm the transaction status once the transaction is confirmed."
           />
         ) : (
-          <TimelineStep
+          <TimelineStep<DEPOSIT_STEP>
             activeStep={activeStep}
             stepNumber={3}
             step={DEPOSIT_STEP.CONFIRM}

@@ -2,20 +2,10 @@ import Image from "next/image";
 
 export default function Footer({ supportLink }: { supportLink?: string }) {
   return (
-    <footer className="w-full flex flex-col items-center justify-center py-10 px-4 bg-white font-Matter">
-      <div
-        style={{
-          maxWidth: "1200px",
-        }}
-        className="flex-1 w-full px-4 flex-row flex items-center justify-between"
-      >
-        <div>
-          <Image
-            src="/images/l2LabsLogo.svg"
-            alt="Stacks Logo"
-            width={100}
-            height={100}
-          />
+    <footer className="w-full flex flex-col items-center justify-center py-10 px-4 bg-[#272628] font-Matter">
+      <div className="w-full flex flex-row items-center justify-between">
+        <div className="flex flex-col gap-2">
+          <p className="text-black font-semibold text-sm">sBTC Bridge</p>
         </div>
         <div className="flex flex-row gap-4">
           {supportLink && (
