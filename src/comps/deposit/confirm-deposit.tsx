@@ -103,9 +103,16 @@ const ConfirmDeposit = ({
 
       // Parse lockTime from env variable
       const parsedLockTime = parseInt(lockTime || "144");
+
+      // get the publicKey from the user payment address
+      // user cannot continue if they're not connected
+      const paymentAddress = walletInfo.addresses.payment!;
+
+      const reclaimPublicKey = paymentAddress.publicKey;
+
       // Create the reclaim script and convert to Buffer
       const reclaimScript = Buffer.from(
-        createReclaimScript(parsedLockTime, new Uint8Array([])),
+        createReclaimScript(parsedLockTime, reclaimPublicKey),
       );
 
       const reclaimScriptHex = uint8ArrayToHexString(reclaimScript);
@@ -123,6 +130,7 @@ const ConfirmDeposit = ({
         maxFee,
         parsedLockTime,
         getBitcoinNetwork(config.WALLET_NETWORK),
+        reclaimPublicKey,
       );
 
       let txId = "";
