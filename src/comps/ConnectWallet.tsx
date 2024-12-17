@@ -165,7 +165,7 @@ const ConnectWallet = ({ onClose }: ConnectWalletProps) => {
                     alt={provider.name}
                   />
                   <p className="ml-4 text-black">
-                    {provider.walletProvider === WalletProvider.ASIGNA 
+                    {provider.walletProvider === WalletProvider.ASIGNA && !available
                       ? 'Open as an embedded app in Asigna' 
                       : <>
                         {provider.name}{""}
