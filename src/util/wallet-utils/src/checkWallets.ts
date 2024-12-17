@@ -11,6 +11,7 @@ const checkXverseProvider = async () => {
 export enum WalletType {
   xverse = "xverse",
   leather = "leather",
+  asigna = 'asigna',
 }
 export const checkAvailableWallets: () => Promise<{
   [key in WalletType]: boolean;
@@ -21,5 +22,6 @@ export const checkAvailableWallets: () => Promise<{
   return {
     leather: isLeather,
     xverse: isXverse,
+    asigna: window.top !== window.self,
   };
 };

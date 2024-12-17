@@ -40,6 +40,7 @@ import { sendBTCLeather, sendBTCXverse } from "@/util/wallet-utils";
 import useMintCaps from "@/hooks/use-mint-caps";
 import { getAggregateKey } from "@/util/get-aggregate-key";
 import getBitcoinNetwork from "@/util/get-bitcoin-network";
+import { useAsignaConnect } from "@asigna/btc-connect";
 import { useQuery } from "@tanstack/react-query";
 import getBtcBalance from "@/actions/get-btc-balance";
 import { useDepositStatus } from "@/hooks/use-deposit-status";
@@ -266,6 +267,8 @@ const DepositFlowConfirm = ({
   const config = useAtomValue(bridgeConfigAtom);
   const { notifyEmily, isPending: isPendingNotifyEmily } = useEmilyDeposit();
 
+  const { openSignBtcAmount } = useAsignaConnect();
+
   const walletInfo = useAtomValue(walletInfoAtom);
   const handleNextClick = async () => {
     try {
@@ -330,6 +333,9 @@ const DepositFlowConfirm = ({
             break;
           case WalletProvider.XVERSE:
             txId = await sendBTCXverse(params);
+            break;
+          case WalletProvider.ASIGNA:
+            txId = await openSignBtcAmount(params, true);
             break;
         }
       } catch (error) {
