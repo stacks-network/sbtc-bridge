@@ -127,6 +127,20 @@ const DepositFlowAmount = ({
           <Heading>Deposit</Heading>
         </div>
         <SubText>Convert BTC into sBTC</SubText>
+
+        <SubText>
+          Note: an additional fee (max 80k sats) will be automatically deducted
+          from your deposited sBTC to cover the network transaction fee.{" "}
+          <a
+            className="text-blue-500 underline"
+            href="https://docs.stacks.co/guides-and-tutorials/sbtc/how-to-use-the-sbtc-bridge#choose-the-amount-to-deposit"
+            target="_blank"
+            rel="noreferrer"
+          >
+            More Info
+          </a>
+        </SubText>
+
         <FlowForm
           nameKey="amount"
           type="number"
@@ -438,7 +452,7 @@ const DepositFlowReview = ({ txId }: DepositFlowReviewProps) => {
     useDepositStatus(txId);
   const { WALLET_NETWORK: walletNetwork } = useAtomValue(bridgeConfigAtom);
   const btcAmount = useMemo(() => {
-    return ((statusResponse?.vout[0].value || 0) / 1e8).toLocaleString();
+    return (statusResponse?.vout[0].value || 0) / 1e8;
   }, [statusResponse?.vout]);
   return (
     <FlowContainer>
