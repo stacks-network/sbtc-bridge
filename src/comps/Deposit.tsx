@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import getBtcBalance from "@/actions/get-btc-balance";
 import { useAtomValue } from "jotai";
 import { walletInfoAtom } from "@/util/atoms";
+import { useDepositStatus } from "@/hooks/use-deposit-status";
 
 /*
   deposit flow has 3 steps
@@ -149,6 +150,29 @@ const DepositFlow = () => {
     },
     enabled: !!btcAddress,
   });
+
+  const {
+    // confirmedBlockHeight,
+    // currentBlockHeight,
+    status,
+    recipient,
+    statusResponse,
+    stacksTxId,
+  } = useDepositStatus(txId);
+
+  const btcAmount = useMemo(() => {
+    return statusResponse?.vout[0].value || 0;
+  }, [statusResponse?.vout]);
+
+  // const showDepositWarning = useMemo(() => {
+  //   if (confirmedBlockHeight === 0) {
+  //     return false;
+  //   } else {
+  //     const elapsedBlocks = currentBlockHeight - confirmedBlockHeight;
+
+  //     return elapsedBlocks >= 6;
+  //   }
+  // }, [confirmedBlockHeight, currentBlockHeight]);
   const renderStep = () => {
     switch (step) {
       case DEPOSIT_STEP.AMOUNT:
@@ -181,8 +205,8 @@ const DepositFlow = () => {
       case DEPOSIT_STEP.REVIEW:
         return (
           <TransactionConfirmed
-            amount={amount}
-            stxAddress={stxAddress}
+            amount={btcAmount}
+            stxAddress={recipient}
             setStep={handleUpdateStep}
             txId={txId}
           />
@@ -201,7 +225,12 @@ const DepositFlow = () => {
         className="w-full flex flex-row gap-4 mt-16"
       >
         {renderStep()}
-        <DepositTimeline txId={txId} activeStep={step} />
+        <DepositTimeline
+          stacksTxId={stacksTxId}
+          status={status}
+          txId={txId}
+          activeStep={step}
+        />
       </div>
 
       <div

@@ -11,6 +11,9 @@ import ReclaimDeposit from "./reclaim/reclaim-deposit";
 import ReclaimTimeline from "./reclaim/reclaim-timeline";
 import { NavTile } from "./core/app-nav";
 import { SECTION } from "./HomeApp";
+import { useAtomValue } from "jotai";
+import { bridgeConfigAtom } from "@/util/atoms";
+import { useReclaimStatus } from "@/hooks/use-reclaim-status";
 
 /*
   Goal : User server side rendering as much as possible
@@ -51,6 +54,10 @@ type EmilyDepositTransactionType = {
 
 const ReclaimManager = () => {
   const searchParams = useSearchParams();
+  const depositTxId = searchParams.get("depositTxId");
+  const outputIndex = searchParams.get("vout") || 0;
+  const reclaimTxId = searchParams.get("reclaimTxId");
+  const status = useReclaimStatus(reclaimTxId || "");
 
   const { notify } = useNotifications();
 
@@ -67,9 +74,6 @@ const ReclaimManager = () => {
     // get the txId from the query params
 
     // based on the query params determine if we fetch a info from emily or fetch a already made reclaim request
-
-    const reclaimTxId = searchParams.get("reclaimTxId");
-    const depositTxId = searchParams.get("depositTxId");
 
     if (reclaimTxId) {
       fetchReclaimTransactionStatus();
@@ -116,7 +120,9 @@ const ReclaimManager = () => {
           return null;
         }
 
-        return <ReclaimStepper amount={amount} txId={reclaimTxId} />;
+        return (
+          <ReclaimStepper status={status} amount={amount} txId={reclaimTxId} />
+        );
       case RECLAIM_STEP.LOADING:
         return <LoadingInfo />;
       case RECLAIM_STEP.NOT_FOUND:
@@ -130,7 +136,6 @@ const ReclaimManager = () => {
 
   const fetchReclaimTransactionStatus = async () => {
     try {
-      const reclaimTxId = searchParams.get("reclaimTxId");
       if (!reclaimTxId) {
         notify({
           type: NotificationStatusType.ERROR,
@@ -195,8 +200,6 @@ const ReclaimManager = () => {
   const fetchDepositInfoFromEmily = async () => {
     try {
       // get the depositTxId and outputIndex from the query params
-      const depositTxId = searchParams.get("depositTxId");
-      const outputIndex = searchParams.get("vout") || 0;
 
       // we want to get the deposit info from Emily
       /*
@@ -210,7 +213,7 @@ const ReclaimManager = () => {
       */
 
       const response = await fetch(
-        `${emilyUrl}deposit/${depositTxId}/${outputIndex}`,
+        `${emilyUrl}/deposit/${depositTxId}/${outputIndex}`,
         {
           method: "GET",
           headers: {
@@ -271,7 +274,8 @@ const ReclaimManager = () => {
           {renderStep()}
           <ReclaimTimeline
             activeStep={step}
-            txId={searchParams.get("depositTxId") || ""}
+            status={status}
+            txId={depositTxId || ""}
           />
         </div>
       </div>

@@ -56,33 +56,33 @@ const SelectedSection = ({ section, onClickSection }: SectionSelection) => {
         activeSection={section}
         text="Deposit"
         onClickSection={handleClickSection}
-      /> */}
-        {/* <SectionAction
+      />
+      {/* <SectionAction
         section={SECTION.WITHDRAW}
         activeSection={section}
         text="Withdraw"
         onClickSection={handleClickSection}
       /> */}
-        {/* <SectionAction
+      {/* <SectionAction
         section={SECTION.HISTORY}
         activeSection={section}
         text="History"
         onClickSection={handleClickSection}
       /> */}
-        {/* <SectionAction
+      {/* <SectionAction
         section={SECTION.TRANSFER}
         activeSection={section}
         text="Transfer"
         onClickSection={handleClickSection}
       /> */}
-        {/* <SectionAction
+      {/* <SectionAction
         section={SECTION.SETTINGS}
         activeSection={section}
         text="Settings"
         onClickSection={handleClickSection}
       /> */}
-      </div>
-    );
-  };
+    </div>
+  );
+};
 
 export default SelectedSection;

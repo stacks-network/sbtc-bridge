@@ -18,7 +18,7 @@ export enum DepositStatus {
   Failed = "Failed",
 }
 
-export function useDepositStatus(txId: string) {
+export function useDepositStatus(txId?: string) {
   const router = useRouter();
   const { notifyEmily } = useEmilyDeposit();
   const [transferTxStatus, setTransferTxStatus] = useState<DepositStatus>(

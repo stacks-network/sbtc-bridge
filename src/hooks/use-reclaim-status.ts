@@ -9,7 +9,7 @@ export enum ReclaimStatus {
   Failed = "failed",
 }
 
-export const useReclaimStatus = (txId: string) => {
+export const useReclaimStatus = (txId?: string) => {
   const { POLLING_INTERVAL } = useAtomValue(bridgeConfigAtom);
   // we'll need to fetch this from the bitcoin rpc to get the current status of the tx
   const [reclaimStatus, setReclaimStatus] = useState<ReclaimStatus>(

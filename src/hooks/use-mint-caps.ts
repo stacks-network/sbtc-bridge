@@ -59,6 +59,13 @@ export default function useMintCaps() {
     emilyLimitsData?.perDepositCap,
     sbtcSupplyData?.value.value,
   ]);
+  console.log({
+    sbtcSupplyData,
+    currentCap,
+    perDepositMinimum: emilyLimitsData?.perDepositMinimum ?? 0,
+    isWithinDepositLimits,
+    isLoading,
+  });
   return {
     currentCap,
     perDepositMinimum: emilyLimitsData?.perDepositMinimum ?? 0,

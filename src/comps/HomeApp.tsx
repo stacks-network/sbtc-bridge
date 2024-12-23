@@ -6,6 +6,7 @@ import { TransferAction } from "./TransferHome";
 import LandingAnimation from "./core/LandingAnimation";
 import { usePathname, useRouter } from "next/navigation";
 import AppNav from "./core/app-nav";
+import HistoryView from "./HistoryView";
 
 export enum SECTION {
   DEPOSIT = "DEPOSIT",
@@ -32,14 +33,14 @@ const HomeApp = () => {
   const [selectedSection, _setSelectedSection] = useState<SECTION>(
     SECTION.DEPOSIT,
   );
-  // const pathname = usePathname();
-  // const router = useRouter();
+  const pathname = usePathname();
+  const router = useRouter();
 
-  // const setSelectedSection = (section: SECTION) => {
-  //   _setSelectedSection(section);
+  const setSelectedSection = (section: SECTION) => {
+    _setSelectedSection(section);
 
-  //   router.push(pathname);
-  // };
+    router.push(pathname);
+  };
 
   const selectedSectionData = sectionsMap.get(selectedSection);
 

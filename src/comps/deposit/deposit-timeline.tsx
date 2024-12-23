@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 import { DEPOSIT_STEP } from "../Deposit";
-import { DepositStatus, useDepositStatus } from "@/hooks/use-deposit-status";
+import { DepositStatus } from "@/hooks/use-deposit-status";
 import { CheckIcon } from "@heroicons/react/20/solid";
 import { useAtomValue } from "jotai";
 import { bridgeConfigAtom } from "@/util/atoms";
+import { getStacksNetwork } from "@/util/get-stacks-network";
+import { ReclaimStatus } from "@/hooks/use-reclaim-status";
 
 type TimelineStepProps<T extends string | number> = {
   stepNumber: number;
@@ -63,16 +65,35 @@ export const CurrentDepositTimelineStep = <T extends string | number>({
   step,
   activeStep,
   txId,
-}: TimelineStepProps<T> & { txId: string }) => {
+  status,
+  stacksTxId,
+}: TimelineStepProps<T> & {
+  txId: string;
+  stacksTxId?: string;
+  status: DepositStatus | ReclaimStatus;
+}) => {
   const isActive = step === activeStep;
 
-  const status = useDepositStatus(txId);
-
-  const { PUBLIC_MEMPOOL_URL } = useAtomValue(bridgeConfigAtom);
+  const { PUBLIC_MEMPOOL_URL, WALLET_NETWORK } = useAtomValue(bridgeConfigAtom);
 
   const mempoolUrl = useMemo(() => {
     return `${PUBLIC_MEMPOOL_URL}/tx/${txId}`;
   }, [PUBLIC_MEMPOOL_URL, txId]);
+
+  const hiroExplorerUrl = useMemo(() => {
+    if (!stacksTxId) {
+      return "";
+    }
+    let explorerUrl = `https://explorer.hiro.so/txid/${stacksTxId}`;
+    const network = getStacksNetwork(WALLET_NETWORK);
+    if (network === "testnet") {
+      explorerUrl += `?chain=testnet`;
+    }
+    if (network === "devnet") {
+      explorerUrl = `http://localhost:3020/txid/${stacksTxId}?chain=testnet&api=http://localhost:3999`;
+    }
+    return explorerUrl;
+  }, [stacksTxId, WALLET_NETWORK]);
 
   const renderCurrentStatus = () => {
     if (
@@ -97,18 +118,29 @@ export const CurrentDepositTimelineStep = <T extends string | number>({
         </>
       );
     } else if (status === DepositStatus.Completed) {
-      <>
-        <CheckIcon className="w-16 h-16 flex flex-row items-center justify-center rounded-full text-darkOrange " />
-        <h3 className="font-Matter text-white text-lg font-thin tracking-wide">
-          COMPLETED
-        </h3>
-        <a href={mempoolUrl} target="_blank" rel="noreferrer">
-          <p className="text-white m-0 font-thin  text-sm">
-            (View In :{" "}
-            <span className="text-darkOrange text-bold">mempool</span>)
-          </p>
-        </a>
-      </>;
+      return (
+        <>
+          <CheckIcon className="w-16 h-16 flex flex-row items-center justify-center rounded-full text-darkOrange " />
+          <h3 className="font-Matter text-white text-lg font-thin tracking-wide">
+            COMPLETED
+          </h3>
+          <a href={mempoolUrl} target="_blank" rel="noreferrer">
+            <p className="text-white m-0 font-thin  text-sm">
+              (View In :{" "}
+              <span className="text-darkOrange text-bold">mempool</span>)
+            </p>
+          </a>
+          {hiroExplorerUrl && (
+            <a href={hiroExplorerUrl} target="_blank" rel="noreferrer">
+              <p className="text-white m-0 font-thin  text-sm">
+                (View In :{" "}
+                <span className="text-darkOrange text-bold">Hiro explorer</span>
+                )
+              </p>
+            </a>
+          )}
+        </>
+      );
     }
   };
   return (
@@ -142,8 +174,15 @@ export const CurrentDepositTimelineStep = <T extends string | number>({
 type DepositTimelineProps = {
   activeStep: DEPOSIT_STEP;
   txId: string;
+  status: DepositStatus;
+  stacksTxId: string;
 };
-const DepositTimeline = ({ activeStep, txId }: DepositTimelineProps) => {
+const DepositTimeline = ({
+  activeStep,
+  txId,
+  status,
+  stacksTxId,
+}: DepositTimelineProps) => {
   const activeStepNumber = useMemo(() => {
     switch (activeStep) {
       case DEPOSIT_STEP.AMOUNT:
@@ -188,7 +227,9 @@ const DepositTimeline = ({ activeStep, txId }: DepositTimelineProps) => {
         />
         {activeStep === DEPOSIT_STEP.REVIEW ? (
           <CurrentDepositTimelineStep<DEPOSIT_STEP>
+            status={status}
             txId={txId}
+            stacksTxId={stacksTxId}
             activeStep={activeStep}
             stepNumber={3}
             step={DEPOSIT_STEP.CONFIRM}

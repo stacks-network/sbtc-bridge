@@ -1,4 +1,4 @@
-import { ReclaimStatus, useReclaimStatus } from "@/hooks/use-reclaim-status";
+import { ReclaimStatus } from "@/hooks/use-reclaim-status";
 import { bridgeConfigAtom } from "@/util/atoms";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
@@ -7,10 +7,16 @@ import { FlowLoaderContainer } from "../core/FlowContainer";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
 import { Step } from "../deposit-stepper";
 
-const ReclaimStepper = ({ txId, amount }: { txId: string; amount: number }) => {
+const ReclaimStepper = ({
+  txId,
+  amount,
+  status,
+}: {
+  txId: string;
+  amount: number;
+  status: ReclaimStatus;
+}) => {
   const { PUBLIC_MEMPOOL_URL } = useAtomValue(bridgeConfigAtom);
-
-  const status = useReclaimStatus(txId);
 
   const showLoader = status === ReclaimStatus.Pending;
 

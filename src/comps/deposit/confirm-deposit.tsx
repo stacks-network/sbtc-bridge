@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { CheckIcon, PencilIcon } from "@heroicons/react/20/solid";
 import { DEPOSIT_STEP, DepositFlowConfirmProps } from "../Deposit";
 import { useShortAddress } from "@/hooks/use-short-address";
@@ -11,7 +10,7 @@ import {
   WalletProvider,
 } from "@/util/atoms";
 
-import { STACKS_TESTNET, STACKS_MAINNET } from "@stacks/network";
+import { STACKS_TESTNET, STACKS_MAINNET, STACKS_DEVNET } from "@stacks/network";
 
 import { NotificationStatusType } from "../Notifications";
 import { getAggregateKey } from "@/util/get-aggregate-key";
@@ -30,6 +29,8 @@ import getBitcoinNetwork from "@/util/get-bitcoin-network";
 import { sendBTCLeather, sendBTCXverse } from "@/util/wallet-utils";
 import { ConnectWalletAction } from "./deposit-amount";
 import { useEmilyDeposit } from "@/util/use-emily-deposit";
+import { getStacksNetwork } from "@/util/get-stacks-network";
+import { useQuery } from "@tanstack/react-query";
 
 const ConfirmDeposit = ({
   setStep,
@@ -39,7 +40,6 @@ const ConfirmDeposit = ({
 }: DepositFlowConfirmProps) => {
   const { notify } = useNotifications();
 
-  const [isEmilySyncWNetwork, setIsEmilySyncWNetwork] = useState(false);
   const { notifyEmily, isPending: isPendingNotifyEmily } = useEmilyDeposit();
 
   const {
@@ -52,48 +52,52 @@ const ConfirmDeposit = ({
   const config = useAtomValue(bridgeConfigAtom);
   const walletInfo = useAtomValue(walletInfoAtom);
 
-  useEffect(() => {
-    checkEmilyStatus();
-  }, []);
+  const { data: isEmilySyncWNetwork } = useQuery({
+    queryKey: ["isEmilySyncWNetwork"],
+    queryFn: async () => {
+      try {
+        // Ensure that network chaintip and emily chaintip are in sync
+        let stacksNetworkRPC = STACKS_MAINNET.client.baseUrl;
+        const network = getStacksNetwork(walletNetwork);
+        if (network === "devnet") {
+          stacksNetworkRPC = STACKS_DEVNET.client.baseUrl;
+        }
+        if (network === "testnet") {
+          stacksNetworkRPC = STACKS_TESTNET.client.baseUrl;
+        }
+        const response = await fetch(`${stacksNetworkRPC}/extended`);
+        const data = await response.json();
 
-  const checkEmilyStatus = async () => {
-    try {
-      // Ensure that network chaintip and emily chaintip are in sync
-      const stacksNetworkRPC =
-        walletNetwork !== "mainnet"
-          ? STACKS_TESTNET.client.baseUrl
-          : STACKS_MAINNET.client.baseUrl;
-      const response = await fetch(`${stacksNetworkRPC}/extended`);
-      const data = await response.json();
+        console.log("data", data);
+        const stacksChainTip = data.chain_tip.block_height;
 
-      console.log("data", data);
-      const stacksChainTip = data.chain_tip.block_height;
+        const emilyResponse = await fetch(`${emilyUrl}/chainstate`);
 
-      const emilyResponse = await fetch(`${emilyUrl}/chainstate`);
+        const emilyData = await emilyResponse.json();
 
-      const emilyData = await emilyResponse.json();
+        console.log("emilyData", emilyData);
 
-      console.log("emilyData", emilyData);
+        const emilyChainTip = emilyData.stacksBlockHeight;
 
-      const emilyChainTip = emilyData.stacksBlockHeight;
+        console.log("stacksChainTip", stacksChainTip);
+        console.log("emilyChainTip", emilyChainTip);
 
-      console.log("stacksChainTip", stacksChainTip);
-      console.log("emilyChainTip", emilyChainTip);
-
-      if (stacksChainTip !== emilyChainTip) {
-        notify({
-          type: NotificationStatusType.ERROR,
-          message: `Emily is out of sync with the network. Please try again later`,
-        });
-        setIsEmilySyncWNetwork(false);
-        //setStep(DEPOSIT_STEP.AMOUNT);
-      } else if (stacksChainTip === emilyChainTip) {
-        setIsEmilySyncWNetwork(true);
+        if (stacksChainTip !== emilyChainTip) {
+          notify({
+            type: NotificationStatusType.ERROR,
+            message: `Emily is out of sync with the network. Please try again later`,
+          });
+          return false;
+          //setStep(DEPOSIT_STEP.AMOUNT);
+        } else if (stacksChainTip === emilyChainTip) {
+          return true;
+        }
+      } catch (err) {
+        console.log(err);
       }
-    } catch (err) {
-      console.log(err);
-    }
-  };
+    },
+    enabled: !!emilyUrl,
+  });
 
   const handleNextClick = async () => {
     try {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import { DEPOSIT_STEP, DepositFlowAmountProps } from "../Deposit";
 import useMintCaps from "@/hooks/use-mint-caps";
@@ -19,8 +19,9 @@ const DepositAmount = ({
   amount,
   btcBalance,
 }: DepositFlowAmounExtendedtProps) => {
-  const { currentCap, isWithinDepositLimits, isLoading, perDepositMinimum } =
+  const { currentCap, isWithinDepositLimits, perDepositMinimum } =
     useMintCaps();
+
   const maxDepositAmount = currentCap / 1e8;
   const minDepositAmount = perDepositMinimum / 1e8;
   const isMintCapReached = currentCap <= 0;

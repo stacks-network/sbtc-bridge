@@ -4,13 +4,19 @@ import {
   CurrentDepositTimelineStep,
   TimelineStep,
 } from "../deposit/deposit-timeline";
+import { ReclaimStatus } from "@/hooks/use-reclaim-status";
 
 type ReclaimTimelineProps = {
   activeStep: RECLAIM_STEP;
   txId: string;
+  status: ReclaimStatus;
 };
 
-const ReclaimTimeline = ({ activeStep, txId }: ReclaimTimelineProps) => {
+const ReclaimTimeline = ({
+  activeStep,
+  txId,
+  status,
+}: ReclaimTimelineProps) => {
   const activeStepNumber = useMemo(() => {
     if (
       activeStep === RECLAIM_STEP.LOADING ||
@@ -50,6 +56,7 @@ const ReclaimTimeline = ({ activeStep, txId }: ReclaimTimelineProps) => {
           <CurrentDepositTimelineStep<RECLAIM_STEP>
             txId={txId}
             activeStep={activeStep}
+            status={status}
             stepNumber={2}
             step={RECLAIM_STEP.CURRENT_STATUS}
             activeStepNumber={activeStepNumber}
