@@ -29,6 +29,7 @@ import {
 import getBitcoinNetwork from "@/util/get-bitcoin-network";
 import { sendBTCLeather, sendBTCXverse } from "@/util/wallet-utils";
 import { ConnectWalletAction } from "./deposit-amount";
+import { useEmilyDeposit } from "@/util/use-emily-deposit";
 
 const ConfirmDeposit = ({
   setStep,
@@ -39,6 +40,7 @@ const ConfirmDeposit = ({
   const { notify } = useNotifications();
 
   const [isEmilySyncWNetwork, setIsEmilySyncWNetwork] = useState(false);
+  const { notifyEmily, isPending: isPendingNotifyEmily } = useEmilyDeposit();
 
   const {
     EMILY_URL: emilyUrl,
@@ -141,6 +143,15 @@ const ConfirmDeposit = ({
           amountInSats: amount,
           network: walletNetwork,
         };
+
+        console.log({
+          preSendParams: {
+            bitcoinTxid: txId,
+            bitcoinTxOutputIndex: 0,
+            reclaimScript: reclaimScriptHex,
+            depositScript: depositScriptHexPreHash,
+          },
+        });
         switch (walletInfo.selectedWallet) {
           case WalletProvider.LEATHER:
             txId = await sendBTCLeather(params);
@@ -151,6 +162,7 @@ const ConfirmDeposit = ({
         }
       } catch (error) {
         let errorMessage = error;
+        console.warn(error);
         if (error instanceof Error) {
           errorMessage = error.message;
         }
@@ -166,17 +178,11 @@ const ConfirmDeposit = ({
         bitcoinTxOutputIndex: 0,
         reclaimScript: reclaimScriptHex,
         depositScript: depositScriptHexPreHash,
-        url: emilyUrl,
       };
 
+      console.log({ emilyReqPayloadClient: JSON.stringify(emilyReqPayload) });
       // make emily post request
-      const response = await fetch("/api/emilyDeposit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(emilyReqPayload),
-      });
+      const response = await notifyEmily(emilyReqPayload);
 
       if (!response.ok) {
         notify({
@@ -198,6 +204,7 @@ const ConfirmDeposit = ({
       });
     } catch (error) {
       let errorMessage = error;
+      console.warn(error);
       if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -271,19 +278,21 @@ const ConfirmDeposit = ({
         <div className="w-1/6  relative flex flex-col items-center justify-center h-full" />
         <div className="flex w-full flex-row gap-2">
           <button
+            disabled={isPendingNotifyEmily}
             onClick={() => setStep(DEPOSIT_STEP.ADDRESS)}
             style={{
               border: "2px solid rgba(255, 255, 255, 0.2)",
             }}
-            className=" w-2/6 h-14 flex flex-row items-center justify-center rounded-lg "
+            className=" w-2/6 h-14 flex flex-row items-center justify-center rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             BACK
           </button>
           <ConnectWalletAction>
             {isEmilySyncWNetwork ? (
               <button
+                disabled={isPendingNotifyEmily}
                 onClick={() => handleNextClick()}
-                className="bg-darkOrange w-full h-14 flex flex-row items-center justify-center rounded-lg "
+                className="bg-darkOrange w-full h-14 flex flex-row items-center justify-center rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 CONFIRM TRANSACTION
               </button>

@@ -11,48 +11,51 @@ import { useAtomValue, useSetAtom } from "jotai";
 
 type DepositFlowAmounExtendedtProps = DepositFlowAmountProps & {
   amount: number;
+  btcBalance: number;
 };
 const DepositAmount = ({
   setStep,
   setAmount,
   amount,
+  btcBalance,
 }: DepositFlowAmounExtendedtProps) => {
-  console.log("amount", amount);
-
-  const { currentCap, isWithinDepositLimits } = useMintCaps();
-  const minDepositAmount = 100_000 / 1e8;
+  const { currentCap, isWithinDepositLimits, isLoading, perDepositMinimum } =
+    useMintCaps();
   const maxDepositAmount = currentCap / 1e8;
+  const minDepositAmount = perDepositMinimum / 1e8;
+  const isMintCapReached = currentCap <= 0;
 
-  const [stringAmount, setStringAmount] = useState("");
+  const validationSchema = useMemo(
+    () =>
+      yup.object({
+        amount: yup
+          .number()
+          // dust amount is in sats
+          .min(
+            minDepositAmount,
+            `Minimum deposit amount is ${minDepositAmount} BTC`,
+          )
+          .max(
+            Math.min(btcBalance, maxDepositAmount),
+            btcBalance < maxDepositAmount
+              ? `The deposit amount exceeds your current balance of ${btcBalance} BTC`
+              : `Current deposit cap is ${maxDepositAmount} BTC`,
+          )
+          .required(),
+      }),
+    [btcBalance, maxDepositAmount, minDepositAmount],
+  );
+
+  const [stringAmount, setStringAmount] = useState(String(amount / 1e8));
 
   const { notify } = useNotifications();
 
   // const walletInfo = useAtomValue(walletInfoAtom);
 
-  useEffect(() => {
-    const parsedAmount = amount / 1e8;
-
-    setStringAmount(parsedAmount.toString());
-  }, []);
-
-  const validationSchema = yup.object({
-    amount: yup
-      .number()
-      // dust amount is in sats
-      .min(
-        minDepositAmount,
-        `Minimum deposit amount is ${minDepositAmount} BTC`,
-      )
-      .max(maxDepositAmount, `Current deposit cap is ${maxDepositAmount} BTC`)
-      .required(),
-  });
-
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     // ensure that the value is a number
     // remove any non-numeric characters
     // but keep white spaces
-
-    console.log("e.target.value", e.target.value);
 
     const value = e.target.value;
     setStringAmount(value);
@@ -161,7 +164,7 @@ const DepositAmount = ({
             style={{
               width: `${inputWidth}px`,
             }}
-            placeholder="0.00"
+            placeholder={isMintCapReached ? "Mint cap reached!" : "0.00"}
           />
           <div className=" flex flex-row mt-4 items-end">
             <p className=" text-4xl "> BTC</p>
@@ -195,7 +198,9 @@ const DepositAmount = ({
             style={{
               width: `${inputWidth}px`,
             }}
-            placeholder="Enter Amount"
+            placeholder={
+              isMintCapReached ? "Mint cap reached!" : "Enter Amount"
+            }
           />
           <div className=" flex flex-row mt-4 items-end">
             <p className=" text-4xl ">sBTC</p>
@@ -204,10 +209,11 @@ const DepositAmount = ({
       </div>
       <div className="flex flex-row w-full mt-28 gap-10 ">
         <div className="w-1/6  relative flex flex-col items-center justify-center h-full" />
-        <ConnectWalletAction>
+        <ConnectWalletAction disabled={isMintCapReached}>
           <button
+            disabled={isMintCapReached}
             onClick={() => handleSubmit()}
-            className="bg-darkOrange w-full h-14 flex flex-row items-center justify-center rounded-lg "
+            className="bg-darkOrange w-full h-14 flex flex-row items-center justify-center rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             NEXT
           </button>
@@ -220,9 +226,11 @@ const DepositAmount = ({
 export default DepositAmount;
 
 export const ConnectWalletAction = ({
+  disabled,
   children,
 }: {
   children: React.ReactNode;
+  disabled?: boolean;
 }) => {
   const walletInfo = useAtomValue(walletInfoAtom);
 
@@ -236,8 +244,9 @@ export const ConnectWalletAction = ({
         children
       ) : (
         <button
+          disabled={disabled}
           onClick={() => setShowConnectWallet(true)}
-          className="bg-darkOrange w-full h-14 flex flex-row items-center justify-center rounded-lg "
+          className="bg-darkOrange w-full h-14 flex flex-row items-center justify-center rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           CONNECT WALLET
         </button>

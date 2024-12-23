@@ -10,8 +10,8 @@ import ConfirmDeposit from "./deposit/confirm-deposit";
 import TransactionConfirmed from "./deposit/transaction-confirmed";
 import { useQuery } from "@tanstack/react-query";
 import getBtcBalance from "@/actions/get-btc-balance";
-import { useDepositStatus } from "@/hooks/use-deposit-status";
-import { useEmilyDeposit } from "@/util/use-emily-deposit";
+import { useAtomValue } from "jotai";
+import { walletInfoAtom } from "@/util/atoms";
 
 /*
   deposit flow has 3 steps
@@ -154,6 +154,7 @@ const DepositFlow = () => {
       case DEPOSIT_STEP.AMOUNT:
         return (
           <DepositAmount
+            amount={amount}
             btcBalance={btcBalance || Infinity}
             setAmount={setAmount}
             setStep={handleUpdateStep}
