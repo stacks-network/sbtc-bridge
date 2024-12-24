@@ -63,9 +63,10 @@ const Header = ({ config }: { config: BridgeConfig }) => {
   return (
     <>
       {config.BANNER_CONTENT && (
-        <div className="w-full bg-[#F26969] text-white text-center py-2">
-          {config.BANNER_CONTENT}
-        </div>
+        <div
+          className="w-full bg-[#F26969] text-white text-center py-2"
+          dangerouslySetInnerHTML={{ __html: config.BANNER_CONTENT }}
+        />
       )}
       <header className="w-full bg-[#272628] py-8 flex items-center justify-center">
         <div
