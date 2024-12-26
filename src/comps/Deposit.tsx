@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import getBtcBalance from "@/actions/get-btc-balance";
 import { useAtomValue } from "jotai";
 import { walletInfoAtom } from "@/util/atoms";
-import { useDepositStatus } from "@/hooks/use-deposit-status";
+import { DepositStatus, useDepositStatus } from "@/hooks/use-deposit-status";
 
 /*
   deposit flow has 3 steps
@@ -164,6 +164,11 @@ const DepositFlow = () => {
     return statusResponse?.vout[0].value || 0;
   }, [statusResponse?.vout]);
 
+  useEffect(() => {
+    if (status === DepositStatus.Failed && txId) {
+      router.push(`/reclaim?depositTxId=${txId}`);
+    }
+  }, [status, setStep, router, txId]);
   // const showDepositWarning = useMemo(() => {
   //   if (confirmedBlockHeight === 0) {
   //     return false;
