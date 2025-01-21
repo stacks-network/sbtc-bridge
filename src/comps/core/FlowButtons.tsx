@@ -33,6 +33,36 @@ export const PrimaryButton = ({
   );
 };
 
+export const PrimaryButtonExtended = ({
+  children,
+  onClick,
+  isValid = true,
+  disabled = false,
+  type = "button",
+  buttonStyle,
+}: ButtonProps & { buttonStyle?: string }) => {
+  return (
+    <button
+      disabled={disabled}
+      type={type}
+      className={classNames(
+        "w-40 rounded-lg py-3 flex justify-center items-center flex-row bg-orange disabled:opacity-50 disabled:cursor-not-allowed",
+        buttonStyle,
+      )}
+      onClick={onClick}
+    >
+      <p
+        className={classNames(
+          " text-md tracking-wider font-Matter font-bold",
+          isValid ? "text-black" : "text-black",
+        )}
+      >
+        {children}
+      </p>
+    </button>
+  );
+};
+
 export const SecondaryButton = ({
   children,
   onClick,

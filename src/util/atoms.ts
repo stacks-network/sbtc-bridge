@@ -5,6 +5,9 @@ import { NotificationEventType } from "@/comps/Notifications";
 import getSbtcBridgeConfig from "@/actions/get-sbtc-bridge-config";
 import { atomWithStorage } from "jotai/utils";
 
+import TransportWebHID from "@ledgerhq/hw-transport-webhid";
+import Btc from "@ledgerhq/hw-app-btc";
+
 export const store = createStore();
 
 export type BridgeConfig = Awaited<ReturnType<typeof getSbtcBridgeConfig>>;
@@ -22,13 +25,19 @@ export const bridgeConfigAtom = atom<BridgeConfig>({
 export const depositMaxFeeAtom = atom(80000);
 
 export const showConnectWalletAtom = atom<boolean>(false);
+export const showConnectLedgerAtom = atom<boolean>(false);
 
 export const showTosAtom = atom<boolean>(false);
 
 export const eventsAtom = atom<NotificationEventType[]>([]);
+
 export enum WalletProvider {
   LEATHER = "leather",
   XVERSE = "xverse",
+}
+
+export enum HardwareWalletProvider {
+  LEDGER = "ledger",
 }
 
 type Address = {
@@ -52,3 +61,21 @@ export const walletInfoAtom = atomWithStorage<{
     stacks: null,
   },
 });
+
+export const hardwareWalletInfoAtom = atomWithStorage<{
+  selectedHardware: HardwareWalletProvider | null;
+
+  addresses: {
+    // wallet address
+    payment: Address | null;
+  };
+}>("hardwareWalletInfoV1", {
+  selectedHardware: null,
+
+  addresses: {
+    payment: null,
+  },
+});
+
+export const ledgerTransportAtom = atom<TransportWebHID | null>(null);
+export const ledgerBtcAtom = atom<Btc | null>(null);

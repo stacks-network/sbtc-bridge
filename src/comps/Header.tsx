@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo } from "react";
+import { use, useEffect, useMemo } from "react";
+
+import TransportWebHID from "@ledgerhq/hw-transport-webhid";
+import Btc from "@ledgerhq/hw-app-btc";
 
 import { AnimatePresence } from "framer-motion";
 import { useAtom, useAtomValue } from "jotai";
@@ -11,6 +14,11 @@ import {
   showConnectWalletAtom,
   showTosAtom,
   walletInfoAtom,
+  showConnectLedgerAtom,
+  hardwareWalletInfoAtom,
+  HardwareWalletProvider,
+  ledgerTransportAtom,
+  ledgerBtcAtom,
 } from "@/util/atoms";
 
 import ConnectWallet from "./ConnectWallet";
@@ -20,18 +28,63 @@ import { NotificationStatusType } from "./Notifications";
 import SBTCBalance from "./ui/sbtc-balance";
 import TOS from "./tos";
 import useMintCaps from "@/hooks/use-mint-caps";
+import LedgerConnect from "./ledger/ledger-connect";
 
 // converting to lower case to avoid case sensitive issue
 
 const Header = ({ config }: { config: BridgeConfig }) => {
-  const showTos = useAtomValue(showTosAtom);
-
-  const isTestnet =
-    config.WALLET_NETWORK?.toLowerCase() === "sbtcTestnet".toLowerCase();
-
   const { notify } = useNotifications();
 
+  const { currentCap } = useMintCaps();
+
+  const showTos = useAtomValue(showTosAtom);
+
   const [walletInfo, setWalletInfo] = useAtom(walletInfoAtom);
+
+  const [hardwareWalletInfo, setHardwareWalletInfo] = useAtom(
+    hardwareWalletInfoAtom,
+  );
+
+  const [transport, setTransport] = useAtom(ledgerTransportAtom);
+
+  const [btc, setBtc] = useAtom(ledgerBtcAtom);
+
+  const [showConnectWallet, setShowConnectWallet] = useAtom(
+    showConnectWalletAtom,
+  );
+
+  const [showConnectLedger, setShowConnectLedger] = useAtom(
+    showConnectLedgerAtom,
+  );
+
+  useEffect(() => {
+    // ensure that if the hardware wallet is in local storage, we connect to it
+    if (
+      hardwareWalletInfo.selectedHardware === HardwareWalletProvider.LEDGER &&
+      (transport === null || btc === null)
+    ) {
+      // only attempt to connect to it if the isConnected flag is false
+      handleConnectLedger();
+    }
+  }, [hardwareWalletInfo]);
+
+  const isConnected = useMemo(() => {
+    return (
+      !!walletInfo.selectedWallet ||
+      // not as elegant for a check but at the moment this is the only hardware wallet we have in the app
+      (!!hardwareWalletInfo.selectedHardware && !!transport && !!btc)
+    );
+  }, [walletInfo, hardwareWalletInfo]);
+
+  const stacksAddress = useMemo(() => {
+    if (walletInfo.selectedWallet) {
+      return walletInfo.addresses.stacks!.address;
+    } else {
+      // if we're using a hardware wallet we won't be able to know the stx address
+      return "";
+    }
+  }, [walletInfo, hardwareWalletInfo]);
+
   const handleSignOut = () => {
     setWalletInfo({
       selectedWallet: null,
@@ -41,25 +94,97 @@ const Header = ({ config }: { config: BridgeConfig }) => {
         stacks: null,
       },
     });
+    setHardwareWalletInfo({
+      selectedHardware: null,
+      addresses: {
+        payment: null,
+      },
+    });
+    setTransport(null);
+    setBtc(null);
     notify({
       type: NotificationStatusType.SUCCESS,
       message: `Wallet disconnected`,
     });
   };
-  const isConnected = useMemo(() => !!walletInfo.selectedWallet, [walletInfo]);
-  const [showConnectWallet, setShowConnectWallet] = useAtom(
-    showConnectWalletAtom,
-  );
 
-  const { currentCap } = useMintCaps();
+  const handleConnectLedger = async () => {
+    try {
+      // Request permission from the browser to access USB
+
+      // Prompt user for Ledger device via WebHID
+      const t = await TransportWebHID.create();
+      console.log("t", t);
+
+      if (!t) {
+        console.error("Failed to connect to Ledger: No transport found");
+
+        notify({
+          message: "Failed to connect to Ledger: No transport found",
+          type: NotificationStatusType.ERROR,
+          expire: 10000,
+        });
+
+        return;
+      }
+
+      const btcApp = new Btc({
+        transport: t,
+      });
+
+      console.log("btcApp", btcApp);
+
+      setTransport(t as TransportWebHID);
+      setBtc(btcApp);
+
+      const derivationPath = "44'/1'/0'/0/0";
+
+      const res = await btcApp.getWalletPublicKey(derivationPath, {
+        verify: false, // set true if you want to confirm on-device
+        format: "bech32", // e.g. for native SegWit addresses starting with tb1...
+      });
+
+      console.log("Testnet/Regtest Public Key Info:", res);
+
+      console.log("Ledger connected successfully!");
+
+      // set the hardware wallet info
+      setHardwareWalletInfo({
+        selectedHardware: HardwareWalletProvider.LEDGER,
+        addresses: {
+          payment: {
+            address: res.bitcoinAddress,
+            publicKey: res.publicKey,
+          },
+        },
+      });
+    } catch (err) {
+      setHardwareWalletInfo({
+        selectedHardware: null,
+        addresses: {
+          payment: null,
+        },
+      });
+
+      console.error(err);
+      notify({
+        message: "Failed to connect to Ledger Please try again",
+        type: NotificationStatusType.ERROR,
+        expire: 10000,
+      });
+    }
+  };
 
   const isMintCapReached = currentCap <= 0;
+  const isTestnet =
+    config.WALLET_NETWORK?.toLowerCase() === "sbtcTestnet".toLowerCase();
 
   const renderUserWalletInfo = () => {
     return (
       <>
         {isTestnet && <GetTestnetBTC />}
-        <SBTCBalance address={walletInfo.addresses.stacks!.address} />
+        {stacksAddress !== "" && <SBTCBalance address={stacksAddress} />}
+
         <button
           onClick={() => handleSignOut()}
           className="px-4 py-2 rounded-md border-2 border-orange"
@@ -124,6 +249,11 @@ const Header = ({ config }: { config: BridgeConfig }) => {
       <AnimatePresence>
         {showConnectWallet && (
           <ConnectWallet onClose={() => setShowConnectWallet(false)} />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showConnectLedger && (
+          <LedgerConnect onClose={() => setShowConnectLedger(false)} />
         )}
       </AnimatePresence>
       <AnimatePresence>{showTos && <TOS />}</AnimatePresence>
