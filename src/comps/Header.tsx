@@ -4,22 +4,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
 
+import { getSelectedProviderId } from "@stacks/connect";
 import { AnimatePresence } from "framer-motion";
-import { useAtom, useAtomValue } from "jotai";
-import {
-  BridgeConfig,
-  showConnectWalletAtom,
-  showTosAtom,
-  walletInfoAtom,
-} from "@/util/atoms";
+import { useAtomValue } from "jotai";
 
-import ConnectWallet from "./ConnectWallet";
-import { GetTestnetBTC } from "./get-testnet-btc";
-import { useNotifications } from "@/hooks/use-notifications";
-import { NotificationStatusType } from "./Notifications";
-import SBTCBalance from "./ui/sbtc-balance";
-import TOS from "./tos";
 import useMintCaps from "@/hooks/use-mint-caps";
+import { BridgeConfig, showTosAtom, walletInfoAtom } from "@/util/atoms";
+import {
+  useConnectWallet,
+  useDisconnectWallet,
+} from "../hooks/use-connect-wallet";
+import { GetTestnetBTC } from "./get-testnet-btc";
+import TOS from "./tos";
+import SBTCBalance from "./ui/sbtc-balance";
 
 // converting to lower case to avoid case sensitive issue
 
@@ -29,27 +26,12 @@ const Header = ({ config }: { config: BridgeConfig }) => {
   const isTestnet =
     config.WALLET_NETWORK?.toLowerCase() === "sbtcTestnet".toLowerCase();
 
-  const { notify } = useNotifications();
+  const walletInfo = useAtomValue(walletInfoAtom);
 
-  const [walletInfo, setWalletInfo] = useAtom(walletInfoAtom);
-  const handleSignOut = () => {
-    setWalletInfo({
-      selectedWallet: null,
-      addresses: {
-        payment: null,
-        taproot: null,
-        stacks: null,
-      },
-    });
-    notify({
-      type: NotificationStatusType.SUCCESS,
-      message: `Wallet disconnected`,
-    });
-  };
+  const connectWallet = useConnectWallet();
+  const disconnectWallet = useDisconnectWallet();
+
   const isConnected = useMemo(() => !!walletInfo.selectedWallet, [walletInfo]);
-  const [showConnectWallet, setShowConnectWallet] = useAtom(
-    showConnectWalletAtom,
-  );
 
   const { currentCap } = useMintCaps();
 
@@ -61,7 +43,7 @@ const Header = ({ config }: { config: BridgeConfig }) => {
         {isTestnet && <GetTestnetBTC />}
         <SBTCBalance address={walletInfo.addresses.stacks!.address} />
         <button
-          onClick={() => handleSignOut()}
+          onClick={() => disconnectWallet()}
           className="px-4 py-2 rounded-md border-2 border-orange"
         >
           <h3 className="font-Matter text-xs text-orange font-semibold tracking-wide">
@@ -107,12 +89,12 @@ const Header = ({ config }: { config: BridgeConfig }) => {
               renderUserWalletInfo()
             ) : (
               <button
-                onClick={() => setShowConnectWallet(true)}
+                onClick={() => connectWallet()}
                 disabled={isMintCapReached}
-                className=" bg-orange  px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-orange px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <h3 className="font-Matter text-xs font-semibold tracking-wide">
-                  CONNECT WALLET
+                  CONNECT WALLET ({getSelectedProviderId()})
                 </h3>
               </button>
             )}
@@ -121,11 +103,6 @@ const Header = ({ config }: { config: BridgeConfig }) => {
       </header>
       {/* <Metrics /> */}
 
-      <AnimatePresence>
-        {showConnectWallet && (
-          <ConnectWallet onClose={() => setShowConnectWallet(false)} />
-        )}
-      </AnimatePresence>
       <AnimatePresence>{showTos && <TOS />}</AnimatePresence>
     </>
   );
