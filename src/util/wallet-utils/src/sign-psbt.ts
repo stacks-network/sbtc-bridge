@@ -1,40 +1,33 @@
-import { request } from "sats-connect";
 import { DefaultNetworkConfigurations } from "@leather.io/models";
 import { hexToBytes, bytesToHex } from "@stacks/common";
+import { request } from "@stacks/connect";
 
 type SignPSBTParams = {
   hex: string;
   network?: DefaultNetworkConfigurations;
   address: string;
 };
-export async function signPSBTLeather({ hex, network }: SignPSBTParams) {
-  const response = await window.LeatherProvider?.request("signPsbt", {
-    network,
-    hex,
-  });
-  if (!response) {
+
+export async function signPSBTRequest({ hex, address }: SignPSBTParams) {
+  const base64 = hexToBase64(hex);
+
+  try {
+    const result = await request("signPsbt", {
+      psbt: base64,
+      signInputs: [{ index: 0, address }],
+    });
+
+    return base64ToHex(result.psbt);
+  } catch (e) {
+    if (e instanceof Error) throw new Error(`Error signing PSBT: ${e.message}`);
     throw new Error(`Error signing PSBT`);
   }
-  return response.result.hex;
 }
 
-export async function signPSBTXverse({ hex, address }: SignPSBTParams) {
-  const bytes = hexToBytes(hex);
-  const base64 = btoa(String.fromCharCode(...bytes));
-
-  const response = await request("signPsbt", {
-    psbt: base64,
-    signInputs: {
-      [address]: [0],
-    },
-  });
-  if (response.status === "error") {
-    throw new Error(`Error signing PSBT`);
-  }
-
-  return base64ToHex(response.result.psbt);
-}
-
-export function base64ToHex(base64: string) {
+function base64ToHex(base64: string) {
   return bytesToHex(Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)));
+}
+
+function hexToBase64(hex: string) {
+  return btoa(String.fromCharCode(...hexToBytes(hex)));
 }
