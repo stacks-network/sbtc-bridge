@@ -7,12 +7,7 @@ import { useShortAddress } from "@/hooks/use-short-address";
 import { InformationCircleIcon } from "@heroicons/react/16/solid";
 import { PrimaryButton } from "./core/FlowButtons";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  bridgeConfigAtom,
-  walletInfoAtom,
-  showConnectWalletAtom,
-  WalletProvider,
-} from "@/util/atoms";
+import { bridgeConfigAtom, walletInfoAtom, WalletProvider } from "@/util/atoms";
 
 import { useNotifications } from "@/hooks/use-notifications";
 import { NotificationStatusType } from "./Notifications";
@@ -30,6 +25,7 @@ import {
   signPSBTLeather,
   signPSBTXverse,
 } from "@/util/wallet-utils/src/sign-psbt";
+import { useConnectWallet } from "../hooks/use-connect-wallet";
 
 /*
   Goal : User server side rendering as much as possible
@@ -327,8 +323,8 @@ const ReclaimDeposit = ({
 }: ReclaimDepositProps) => {
   const { notify } = useNotifications();
   const walletInfo = useAtomValue(walletInfoAtom);
-  const setShowWallet = useSetAtom(showConnectWalletAtom);
   const router = useRouter();
+  const connectWallet = useConnectWallet();
 
   const { WALLET_NETWORK: walletNetwork, SUPPORT_LINK } =
     useAtomValue(bridgeConfigAtom);
@@ -341,7 +337,7 @@ const ReclaimDeposit = ({
       const btcAddress = getWalletAddress();
 
       if (!btcAddress) {
-        return setShowWallet(true);
+        return connectWallet();
       }
 
       // FIXME: move to util or its own file

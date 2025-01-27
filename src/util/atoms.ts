@@ -21,8 +21,6 @@ export const bridgeConfigAtom = atom<BridgeConfig>({
 });
 export const depositMaxFeeAtom = atom(80000);
 
-export const showConnectWalletAtom = atom<boolean>(false);
-
 export const showTosAtom = atom<boolean>(false);
 
 export const eventsAtom = atom<NotificationEventType[]>([]);
