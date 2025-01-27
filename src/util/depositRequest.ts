@@ -10,11 +10,16 @@ import ecc from "@bitcoinerlab/secp256k1";
 
 bitcoin.initEccLib(ecc);
 
-export const NUMS_X_COORDINATE = new Uint8Array([
-  0x50, 0x92, 0x9b, 0x74, 0xc1, 0xa0, 0x49, 0x54, 0xb7, 0x8b, 0x4b, 0x60, 0x35,
-  0xe9, 0x7a, 0x5e, 0x07, 0x8a, 0x5a, 0x0f, 0x28, 0xec, 0x96, 0xd5, 0x47, 0xbf,
-  0xee, 0x9a, 0xce, 0x80, 0x3a, 0xc0,
+// Pubkey, derived from NUMS pubkey with derivation path "0/0".
+// Read about NUMS:
+// https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#constructing-and-spending-taproot-outputs
+export const DERIVED_NUMS_X_COORDINATE = new Uint8Array([
+  0x4a, 0x30, 0xb2, 0xe4, 0x61, 0xb2, 0x80, 0xc0, 0xb1, 0x3a, 0x03, 0x79, 0x90,
+  0x96, 0xab, 0x12, 0x56, 0x58, 0x91, 0x53, 0xfc, 0x4b, 0x9c, 0x8c, 0xea, 0xd1,
+  0x6d, 0xc0, 0xb6, 0x42, 0x06, 0x97,
 ]);
+
+
 
 // Helper function to convert a little-endian 8-byte number to big-endian
 const flipEndian = (buffer: Uint8Array): Uint8Array => {
@@ -126,11 +131,11 @@ export const createDepositAddress = (
 
   // Step 1: Generate the tweak
 
-  const tweak = bip341.tapTweakHash(NUMS_X_COORDINATE, merkleRoot.hash);
+  const tweak = bip341.tapTweakHash(DERIVED_NUMS_X_COORDINATE, merkleRoot.hash);
 
   // Step 2: Apply the tweak to the internal public key to get the tweaked Taproot output key
 
-  const taprootPubKey = bip341.tweakKey(NUMS_X_COORDINATE, tweak);
+  const taprootPubKey = bip341.tweakKey(DERIVED_NUMS_X_COORDINATE, tweak);
 
   if (taprootPubKey === null) {
     throw new Error("Failed to tweak the internal public key.");
@@ -138,7 +143,7 @@ export const createDepositAddress = (
 
   // Step 1: Convert the Taproot public key to a P2TR address
   const p2tr = bitcoin.payments.p2tr({
-    internalPubkey: NUMS_X_COORDINATE, // The tweaked Taproot public key
+    internalPubkey: DERIVED_NUMS_X_COORDINATE, // The tweaked Taproot public key
     network: network,
     scriptTree: scriptTree,
   }) as bitcoin.Payment;

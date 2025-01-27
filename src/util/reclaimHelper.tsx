@@ -6,7 +6,7 @@ import * as bitcoin from "bitcoinjs-lib";
 import { Taptree } from "bitcoinjs-lib/src/types";
 
 import { hexToBytes as hexToUint8Array } from "@stacks/common";
-import { NUMS_X_COORDINATE } from "./depositRequest";
+import { DERIVED_NUMS_X_COORDINATE } from "./depositRequest";
 import getBitcoinNetwork from "./get-bitcoin-network";
 
 export const finalizePsbt = (
@@ -81,7 +81,7 @@ export const constructPsbtForReclaim = ({
   const psbt = new bitcoin.Psbt({ network });
 
   const p2trRes = bitcoin.payments.p2tr({
-    internalPubkey: NUMS_X_COORDINATE,
+    internalPubkey: DERIVED_NUMS_X_COORDINATE,
     scriptTree,
     redeem: {
       output: uInt8ReclaimScript,
