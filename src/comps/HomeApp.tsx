@@ -5,6 +5,7 @@ import Faqs from "./Faqs";
 import DepositFlow from "./Deposit";
 import { TransferAction } from "./TransferHome";
 import LandingAnimation from "./core/LandingAnimation";
+import { AsignaSignActionModals } from "@asigna/btc-connect";
 // import { usePathname, useRouter } from "next/navigation";
 
 export enum SECTION {
@@ -63,6 +64,7 @@ const HomeApp = () => {
         )} */}
         {selectedSection === SECTION.TRANSFER && <TransferAction />}
       </LandingAnimation>
+      <AsignaSignActionModals />
       <Faqs />
     </>
   );

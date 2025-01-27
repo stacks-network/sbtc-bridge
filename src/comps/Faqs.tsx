@@ -109,6 +109,17 @@ const faqs = [
             integrations designed for Bitcoin and Stacks users.
           </li>
           <li>
+            <a 
+              className="text-blue-600 underline"
+              href="https://www.asigna.io/"
+              target="_blank"
+            >
+              Asigna Multisig
+            </a>{" "} 
+            is also supported on both the Bitcoin and Stacks sides, providing
+            reliable functionality for multisig setups.
+          </li>
+          <li>
             We are actively working with institutional custodians, staking
             providers, and other 3rd party wallets to support sBTC. More will be
             announced.

@@ -29,6 +29,7 @@ export const eventsAtom = atom<NotificationEventType[]>([]);
 export enum WalletProvider {
   LEATHER = "leather",
   XVERSE = "xverse",
+  ASIGNA = 'asigna',
 }
 
 type Address = {

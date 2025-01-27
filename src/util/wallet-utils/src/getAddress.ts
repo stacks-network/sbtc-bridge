@@ -81,6 +81,24 @@ export const getAddressesXverse: getAddresses = async (params) => {
   return getWalletAddresses(result);
 };
 
+export const getAddressesAsigna = async (action: () => Promise<any>) => {
+  const response = await action();
+  return {
+    taproot: {
+      address: '',
+      publicKey: '',
+    },
+    payment: {
+      address: response.address,
+      publicKey: response.publicKey,
+    },
+    stacks: {
+      address: '',
+      publicKey: '',
+    },
+  };
+}
+
 const extractAddressByType = (
   addresses: Address[],
   addressType: BtcAddress["type"],
