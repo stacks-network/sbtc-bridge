@@ -354,6 +354,7 @@ const DepositFlowConfirm = ({
 
       // make emily post request
       const response = await notifyEmily(emilyReqPayload);
+      console.log({ emilyReqPayloadClient: JSON.stringify(emilyReqPayload) });
 
       if (!response.ok) {
         notify({

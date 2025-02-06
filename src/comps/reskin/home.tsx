@@ -1,11 +1,12 @@
 "use client";
 import { useState } from "react";
-import Faqs from "./Faqs";
-// import SelectedSection from "./HomeSelectedHeader";
-import DepositFlow from "./Deposit";
-import { TransferAction } from "./TransferHome";
+import Faqs from "./faqs";
+import { TransferAction } from "../TransferHome";
 import LandingAnimation from "./core/LandingAnimation";
-// import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import AppNav from "./core/app-nav";
+import HistoryView from "./history/history-manager";
+import DepositFlow from "./deposit/deposit-manager";
 
 export enum SECTION {
   DEPOSIT = "DEPOSIT",
@@ -32,14 +33,14 @@ const HomeApp = () => {
   const [selectedSection, _setSelectedSection] = useState<SECTION>(
     SECTION.DEPOSIT,
   );
-  // const pathname = usePathname();
-  // const router = useRouter();
+  const pathname = usePathname();
+  const router = useRouter();
 
-  // const setSelectedSection = (section: SECTION) => {
-  //   _setSelectedSection(section);
+  const setSelectedSection = (section: SECTION) => {
+    _setSelectedSection(section);
 
-  //   router.push(pathname);
-  // };
+    router.push(pathname);
+  };
 
   const selectedSectionData = sectionsMap.get(selectedSection);
 
@@ -49,6 +50,10 @@ const HomeApp = () => {
 
   return (
     <>
+      <AppNav
+        section={selectedSection}
+        onClickSection={(section) => setSelectedSection(section)}
+      />
       <LandingAnimation>
         {/* <SelectedSection
           section={selectedSection}
@@ -56,14 +61,11 @@ const HomeApp = () => {
         /> */}
         <div className="w-screen flex "></div>
         {selectedSection === SECTION.DEPOSIT && <DepositFlow />}
-        {selectedSection === SECTION.WITHDRAW && <p>Coming Soon :)</p>}
-        {/* {selectedSection === SECTION.HISTORY && (
-          <p className="text-center text-lg mb-4 font-Matter font-bold text-black">
-            Coming Soon :)
-          </p>
-        )} */}
+        {selectedSection === SECTION.WITHDRAW && <HistoryView />}
+        {selectedSection === SECTION.HISTORY && <HistoryView />}
         {selectedSection === SECTION.TRANSFER && <TransferAction />}
       </LandingAnimation>
+      <div className="m-8" />
       <Faqs />
     </>
   );

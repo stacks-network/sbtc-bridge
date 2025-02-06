@@ -13,6 +13,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const sBTCBridgeConfig = await getSbtcBridgeConfig();
+
   return (
     <html lang="en">
       <head>
