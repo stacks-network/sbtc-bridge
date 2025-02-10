@@ -39,6 +39,7 @@ const Header = ({ config }: { config: BridgeConfig }) => {
         payment: null,
         taproot: null,
         stacks: null,
+        musig: null,
       },
     });
     notify({

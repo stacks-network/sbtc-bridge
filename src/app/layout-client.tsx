@@ -10,6 +10,7 @@ import { Suspense, useEffect } from "react";
 import { bridgeConfigAtom } from "@/util/atoms";
 import Header from "@/comps/Header";
 import Footer from "@/comps/footer";
+import { AsignaSignActionModals } from "@asigna/btc-connect";
 
 export default function LayoutClient({
   children,
@@ -33,6 +34,7 @@ export default function LayoutClient({
             <Header config={config} />
             {children}
             <Footer supportLink={config.SUPPORT_LINK} />
+            <AsignaSignActionModals />
           </Suspense>
         </main>
       </QueryClientProvider>

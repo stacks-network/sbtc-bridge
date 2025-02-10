@@ -20,20 +20,34 @@ type Results = {
     address: string;
     publicKey: string;
   };
+  musig: {
+    users: AsignaUser[];
+    threshold: number;
+  } | null;
+};
+
+export type AsignaUser = {
+  _id: string;
+  address: string;
+  __v: number;
+  publicKey: string;
+  walletClass: string;
+  walletType: string;
 };
 
 export type getAddresses = (params?: {
   message?: string;
   network?: DefaultNetworkConfigurations;
+  action?: () => Promise<any>;
 }) => Promise<Results>;
 
 const getAddressByPurpose = (
-  response: RpcSuccessResponse<"wallet_connect">["result"],
+  response: RpcSuccessResponse<"getAddresses">["result"],
   purpose: AddressPurpose,
 ) => response.addresses.find((item) => item.purpose === purpose);
 
 export function getWalletAddresses(
-  response: RpcSuccessResponse<"wallet_connect">["result"],
+  response: RpcSuccessResponse<"getAddresses">["result"],
 ) {
   const taproot = getAddressByPurpose(response, AddressPurpose.Ordinals);
   if (!taproot) {
@@ -61,6 +75,7 @@ export function getWalletAddresses(
       address: stacks.address,
       publicKey: stacks.publicKey,
     },
+    musig: null,
   };
 }
 
@@ -69,8 +84,12 @@ export function getWalletAddresses(
  * @description Get the address for the user
  */
 export const getAddressesXverse: getAddresses = async (params) => {
-  const response = await request("wallet_connect", {
-    message: params?.message,
+  const response = await request("getAddresses", {
+    purposes: [
+      AddressPurpose.Ordinals,
+      AddressPurpose.Payment,
+      AddressPurpose.Stacks,
+    ],
   });
 
   if (response.status === "error") {
@@ -79,6 +98,31 @@ export const getAddressesXverse: getAddresses = async (params) => {
 
   const result = response.result;
   return getWalletAddresses(result);
+};
+
+export const getAddressesAsigna: getAddresses = async (params) => {
+  if (!params?.action) {
+    throw new Error("Action is required");
+  }
+  const response = await params.action();
+  return {
+    taproot: {
+      address: "",
+      publicKey: "",
+    },
+    payment: {
+      address: response.address,
+      publicKey: response.publicKey,
+    },
+    stacks: {
+      address: "",
+      publicKey: "",
+    },
+    musig: {
+      users: response.users,
+      threshold: response.threshold,
+    },
+  };
 };
 
 const extractAddressByType = (
@@ -119,5 +163,6 @@ export const getAddressesLeather: getAddresses = async () => {
     payment,
     taproot,
     stacks,
+    musig: null,
   };
 };

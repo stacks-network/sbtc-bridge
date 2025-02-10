@@ -30,7 +30,9 @@ import {
   signPSBTLeather,
   signPSBTXverse,
 } from "@/util/wallet-utils/src/sign-psbt";
-
+import { useAsignaConnect } from "@asigna/btc-connect";
+import { Psbt } from "bitcoinjs-lib";
+import { bytesToHex } from "@stacks/common";
 /*
   Goal : User server side rendering as much as possible
   - Break down the components into either their own file or smaller components
@@ -329,6 +331,7 @@ const ReclaimDeposit = ({
   const walletInfo = useAtomValue(walletInfoAtom);
   const setShowWallet = useSetAtom(showConnectWalletAtom);
   const router = useRouter();
+  const { openSignPsbt } = useAsignaConnect();
 
   const { WALLET_NETWORK: walletNetwork, SUPPORT_LINK } =
     useAtomValue(bridgeConfigAtom);
@@ -386,6 +389,12 @@ const ReclaimDeposit = ({
     }
     if (walletInfo.selectedWallet === WalletProvider.XVERSE) {
       signedPsbt = await signPSBTXverse(params);
+    }
+    if (walletInfo.selectedWallet === WalletProvider.ASIGNA) {
+      signedPsbt = await openSignPsbt(Psbt.fromHex(psbtHex), false);
+      signedPsbt = bytesToHex(
+        Uint8Array.from(atob(signedPsbt), (c) => c.charCodeAt(0)),
+      );
     }
 
     if (signedPsbt) {
