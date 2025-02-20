@@ -339,7 +339,6 @@ const DepositFlowConfirm = ({
           },
         });
 
-        txId = await sendBTC(params); // todo
         switch (walletInfo.selectedWallet) {
           case WalletProvider.ASIGNA:
             txId = (await openSignBtcAmount(
@@ -347,6 +346,9 @@ const DepositFlowConfirm = ({
               true,
               config.MEMPOOL_API_URL + "/",
             )) as string;
+            break;
+          default:
+            txId = await sendBTC(params);
             break;
         }
       } catch (error) {

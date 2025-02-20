@@ -21,13 +21,27 @@ export function useConnectWallet() {
     try {
       const res = await request({ forceWalletSelect: true }, "getAddresses");
 
+      if ("users" in res) {
+        const asigna = res as any;
+        setWalletInfo({
+          selectedWallet: WalletProvider.ASIGNA,
+          addresses: {
+            taproot: { address: "", publicKey: "" },
+            payment: { address: asigna.address, publicKey: asigna.publicKey },
+            stacks: { address: "", publicKey: "" },
+            musig: { users: asigna.users, threshold: asigna.threshold },
+          },
+        });
+        setShowTos(true);
+        return;
+      }
+
       const stx = res.addresses.find((a) => a.address.startsWith("S"));
       const taproot = res.addresses.find((a) => isAddressTaproot(a.address));
       const payment = res.addresses.find(
         (a) =>
           a.address !== stx?.address &&
-          a.address !== taproot?.address &&
-          ("purpose" in a && a.purpose) !== "ordinals",
+          (!("purpose" in a) || a.purpose == "payment"),
       );
 
       const isMainnetAddress =
@@ -46,6 +60,7 @@ export function useConnectWallet() {
           payment: payment || taproot || null,
           taproot: taproot || null,
           stacks: stx || null,
+          musig: null,
         },
       });
       setShowTos(true);
@@ -75,6 +90,7 @@ export function useDisconnectWallet() {
         payment: null,
         taproot: null,
         stacks: null,
+        musig: null,
       },
     });
     notify({
