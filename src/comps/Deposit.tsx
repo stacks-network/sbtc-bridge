@@ -267,8 +267,6 @@ const DepositFlowConfirm = ({
   const config = useAtomValue(bridgeConfigAtom);
   const { notifyEmily, isPending: isPendingNotifyEmily } = useEmilyDeposit();
 
-  const { openSignBtcAmount } = useAsignaConnect();
-
   const walletInfo = useAtomValue(walletInfoAtom);
   const handleNextClick = async () => {
     try {
@@ -339,18 +337,7 @@ const DepositFlowConfirm = ({
           },
         });
 
-        switch (walletInfo.selectedWallet) {
-          case WalletProvider.ASIGNA:
-            txId = (await openSignBtcAmount(
-              params,
-              true,
-              config.MEMPOOL_API_URL + "/",
-            )) as string;
-            break;
-          default:
-            txId = await sendBTC(params);
-            break;
-        }
+        txId = await sendBTC(params);
       } catch (error) {
         let errorMessage = error;
         console.warn(error);

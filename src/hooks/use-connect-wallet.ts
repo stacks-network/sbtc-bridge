@@ -41,7 +41,7 @@ export function useConnectWallet() {
       const payment = res.addresses.find(
         (a) =>
           a.address !== stx?.address &&
-          (!("purpose" in a) || a.purpose == "payment"),
+          (!("purpose" in a) || a.purpose === "payment"),
       );
 
       const isMainnetAddress =
@@ -114,7 +114,10 @@ function providerIdToEnum(
   providerId: string | null,
 ): WalletProvider | undefined {
   if (!providerId) return undefined;
+
   providerId = providerId.toLowerCase();
   if (providerId.includes("leather")) return WalletProvider.LEATHER;
   if (providerId.includes("xverse")) return WalletProvider.XVERSE;
+  if (providerId.includes("asigna")) return WalletProvider.ASIGNA;
+  if (providerId.includes("fordefi")) return WalletProvider.FORDEFI;
 }
