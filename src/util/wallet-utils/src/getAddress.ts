@@ -42,12 +42,12 @@ export type getAddresses = (params?: {
 }) => Promise<Results>;
 
 const getAddressByPurpose = (
-  response: RpcSuccessResponse<"getAddresses">["result"],
+  response: RpcSuccessResponse<"getAccounts">["result"],
   purpose: AddressPurpose,
-) => response.addresses.find((item) => item.purpose === purpose);
+) => response.find((item) => item.purpose === purpose);
 
 export function getWalletAddresses(
-  response: RpcSuccessResponse<"getAddresses">["result"],
+  response: RpcSuccessResponse<"getAccounts">["result"],
 ) {
   const taproot = getAddressByPurpose(response, AddressPurpose.Ordinals);
   if (!taproot) {
@@ -84,13 +84,15 @@ export function getWalletAddresses(
  * @description Get the address for the user
  */
 export const getAddressesXverse: getAddresses = async (params) => {
-  const response = await request("getAddresses", {
+  const response = await request("getAccounts", {
     purposes: [
       AddressPurpose.Ordinals,
       AddressPurpose.Payment,
       AddressPurpose.Stacks,
     ],
   });
+
+  console.log(response);
 
   if (response.status === "error") {
     throw new Error(response.error.message);

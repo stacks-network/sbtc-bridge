@@ -531,10 +531,10 @@
   resolved "https://registry.yarnpkg.com/@rushstack/eslint-patch/-/eslint-patch-1.10.3.tgz#391d528054f758f81e53210f1a1eebcf1a8b1d20"
   integrity sha512-qC/xYId4NMebE6w/V33Fh9gWxLgURiNYgVNObbJl2LZv0GUUItCcCqC5axQSwRaAgaxl2mELq1rMzlswaQ0Zxg==
 
-"@sats-connect/core@0.5.3":
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/@sats-connect/core/-/core-0.5.3.tgz#63d0998e75ffd36d3588b774ef95bb5376f93acb"
-  integrity sha512-/2Z5v0DXXXfMM5o9r42EKsuZzy2XVeStN+Vs4uzcVfszK4LjkDftXEz5+EX8IuZbNDzpO6f0f0z1I1TtmQDb4A==
+"@sats-connect/core@0.5.6":
+  version "0.5.6"
+  resolved "https://registry.yarnpkg.com/@sats-connect/core/-/core-0.5.6.tgz#8060fea1ce694d80169cd4ab417b34fd82de5d4c"
+  integrity sha512-ZCCN3nHn3LiJmsUflkBWHkHHw3LdmY2d4BdXH8tz3PNH/n4GT0Cogzb5cJGzdLSZChd+GQvM1gO/4DTayX2BrA==
   dependencies:
     axios "1.7.7"
     bitcoin-address-validation "2.2.3"
@@ -3740,12 +3740,12 @@ safe-regex-test@^1.0.3:
     es-errors "^1.3.0"
     is-regex "^1.1.4"
 
-sats-connect@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/sats-connect/-/sats-connect-3.1.0.tgz#797d5e457ad4c8d7fdc937d02b893664f7d3fc1d"
-  integrity sha512-uZbZs6vw2OV5D0bXS2S1H+U4+FQBU745vg30AbhbeqfT0ZiPLqqP02JCfM1dN4psEnYlbBtdRsfpvMh2spqIdA==
+sats-connect@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/sats-connect/-/sats-connect-3.2.0.tgz#091ae2e98230315f32bd0cd6095163af4bfabc87"
+  integrity sha512-rK674lORAI7h8RGg0ua3tQaPrEdEdDPwtqkvGjul5apXsHNqvB7QFQo1j/bPhRb7H4lwUr3unGKVaumcnbCSZQ==
   dependencies:
-    "@sats-connect/core" "0.5.3"
+    "@sats-connect/core" "0.5.6"
     "@sats-connect/make-default-provider-config" "0.0.10"
     "@sats-connect/ui" "0.0.7"
 
