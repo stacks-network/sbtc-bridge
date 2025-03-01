@@ -8,6 +8,11 @@ Full code coverage is crucial for our Withdraw release.
 Below will be broken up into major sections UI section and Pages (ex FAQ, Navigation, Withdraw)
 Each Section will have a link to the PR
 
+:x: Pending Creation
+:black_square_button: Pending Approval
+:white_check_mark: Merged
+:bangbang: Rejected
+
 ## Start
 
 1. `layout-client` [PR](https://github.com/stacks-network/sbtc-bridge/pull/104)
