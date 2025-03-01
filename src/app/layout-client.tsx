@@ -12,10 +12,9 @@ import { bridgeConfigAtom } from "@/util/atoms";
 import { AsignaSignActionModals } from "@asigna/btc-connect";
 
 import Footer from "@/comps/footer";
-import ReskinHeader from "@/comps/reskin/core/header-v2";
 import Header from "@/comps/Header";
 import { usePathname } from "next/navigation";
-import ReskinFooter from "@/comps/reskin/footer";
+
 export default function LayoutClient({
   children,
   config,
@@ -26,13 +25,13 @@ export default function LayoutClient({
   const pathname = usePathname();
   const isReskin = pathname?.startsWith("/reskin");
   useEffect(() => {
-    console.log("config,", config);
     store.set(bridgeConfigAtom, config);
     // this is a setup step no need to run it twice
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const backgroundColor = isReskin ? "bg-[#272628] " : "bg-white";
+
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
@@ -41,32 +40,25 @@ export default function LayoutClient({
           className={`min-w-screen ${backgroundColor}  flex items-center flex-col min-h-screen `}
         >
           <Suspense fallback={<div>Loading...</div>}>
+            <AsignaSignActionModals />
             {isReskin ? (
-              <>
-                <ReskinHeader config={config} />
-                {children}
-                <ReskinFooter supportLink={config.SUPPORT_LINK} />
-              </>
+              <>{children}</>
             ) : (
               <>
                 <Header config={config} />
                 {children}
+                <a
+                  key="faqs"
+                  href="https://docs.stacks.co/concepts/sbtc/sbtc-faq"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-white font-light block text-xl font-Matter px-20 py-2 bg-[#fd8341] rounded opacity-90"
+                >
+                  FAQs
+                </a>
                 <Footer supportLink={config.SUPPORT_LINK} />
               </>
             )}
-
-            {children}
-            <a
-              key="faqs"
-              href="https://docs.stacks.co/concepts/sbtc/sbtc-faq"
-              target="_blank"
-              rel="noreferrer"
-              className="text-white font-light block text-xl font-Matter px-20 py-2 bg-[#fd8341] rounded opacity-90"
-            >
-              FAQs
-            </a>
-            <Footer supportLink={config.SUPPORT_LINK} />
-            <AsignaSignActionModals />
           </Suspense>
         </main>
       </QueryClientProvider>

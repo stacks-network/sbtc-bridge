@@ -13,7 +13,6 @@ import {
 import { STACKS_TESTNET, STACKS_MAINNET, STACKS_DEVNET } from "@stacks/network";
 
 import { NotificationStatusType } from "../../Notifications";
-import { getAggregateKey } from "@/util/get-aggregate-key";
 import { principalCV, serializeCVBytes } from "@stacks/transactions";
 import {
   createDepositAddress,
@@ -32,6 +31,8 @@ import { useEmilyDeposit } from "@/util/use-emily-deposit";
 import { getStacksNetwork } from "@/util/get-stacks-network";
 import { useQuery } from "@tanstack/react-query";
 import { useFormikContext } from "formik";
+import { getAggregateKey } from "@/actions/get-aggregate-key";
+import { sendBTCFordefi } from "@/util/wallet-utils/src/sendBTC";
 
 const ConfirmDeposit = ({
   setStep,
@@ -111,18 +112,29 @@ const ConfirmDeposit = ({
       // Combine the version and hash into a single Uint8Array
       const serializedAddress = serializeCVBytes(principalCV(stxAddress));
 
-      // Parse lockTime from env variable
-      const parsedLockTime = parseInt(lockTime || "144");
-
       // get the publicKey from the user payment address
       // user cannot continue if they're not connected
       const paymentAddress = walletInfo.addresses.payment!;
 
-      const reclaimPublicKey = paymentAddress.publicKey;
+      let reclaimPublicKeys = [paymentAddress.publicKey];
+      let signatureThreshold = 1;
+
+      if (walletInfo.selectedWallet === WalletProvider.ASIGNA) {
+        const { threshold, users } = walletInfo.addresses.musig!;
+        signatureThreshold = threshold;
+        reclaimPublicKeys = users.map((user) => user.publicKey);
+      }
+
+      // Parse lockTime from env variable
+      const parsedLockTime = parseInt(lockTime || "144");
 
       // Create the reclaim script and convert to Buffer
       const reclaimScript = Buffer.from(
-        createReclaimScript(parsedLockTime, reclaimPublicKey),
+        createReclaimScript(
+          parsedLockTime,
+          reclaimPublicKeys,
+          signatureThreshold,
+        ),
       );
 
       const reclaimScriptHex = uint8ArrayToHexString(reclaimScript);
@@ -140,7 +152,8 @@ const ConfirmDeposit = ({
         maxFee,
         parsedLockTime,
         getBitcoinNetwork(config.WALLET_NETWORK),
-        reclaimPublicKey,
+        reclaimPublicKeys,
+        signatureThreshold,
       );
 
       let txId = "";
@@ -149,11 +162,9 @@ const ConfirmDeposit = ({
       try {
         const params = {
           recipient: p2trAddress,
-          amountInSats: Number(amount) * 1e8,
+          amountInSats: amount,
           network: walletNetwork,
         };
-
-        // eslint-disable-next-line no-console
         console.log({
           preSendParams: {
             bitcoinTxid: txId,
@@ -162,12 +173,23 @@ const ConfirmDeposit = ({
             depositScript: depositScriptHexPreHash,
           },
         });
+
         switch (walletInfo.selectedWallet) {
           case WalletProvider.LEATHER:
             txId = await sendBTCLeather(params);
             break;
           case WalletProvider.XVERSE:
             txId = await sendBTCXverse(params);
+            break;
+          case WalletProvider.FORDEFI:
+            txId = await sendBTCFordefi(params);
+            break;
+          case WalletProvider.ASIGNA:
+            txId = (await openSignBtcAmount(
+              params,
+              true,
+              config.MEMPOOL_API_URL + "/",
+            )) as string;
             break;
         }
       } catch (error) {
@@ -190,9 +212,9 @@ const ConfirmDeposit = ({
         depositScript: depositScriptHexPreHash,
       };
 
-      console.log({ emilyReqPayloadClient: JSON.stringify(emilyReqPayload) });
       // make emily post request
       const response = await notifyEmily(emilyReqPayload);
+      console.log({ emilyReqPayloadClient: JSON.stringify(emilyReqPayload) });
 
       if (!response.ok) {
         notify({
@@ -213,8 +235,8 @@ const ConfirmDeposit = ({
         txId: txId,
       });
     } catch (error) {
-      let errorMessage = error;
       console.warn(error);
+      let errorMessage = error;
       if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -323,3 +345,22 @@ const ConfirmDeposit = ({
 };
 
 export default ConfirmDeposit;
+function openSignBtcAmount(
+  params: {
+    recipient: string;
+    amountInSats: string;
+    network:
+      | "devnet"
+      | "sbtcDevenv"
+      | "mainnet"
+      | "testnet"
+      | "testnet4"
+      | "signet"
+      | "sbtcTestnet"
+      | undefined;
+  },
+  arg1: boolean,
+  arg2: string,
+): string | PromiseLike<string> {
+  throw new Error("Function not implemented.");
+}
