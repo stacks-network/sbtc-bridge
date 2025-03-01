@@ -1,59 +1,37 @@
-"use server";
 import { env } from "@/env";
-import { NextRequest, NextResponse } from "next/server";
-import {
-  getUtxosBitcoinDaemon,
-  rpcHandlerCore,
-  RpcMethods,
-} from "./rpc-handler-core";
+
+import { getUtxosBitcoinDaemon } from "./rpc-handler-core";
+import { validate, Network } from "bitcoin-address-validation";
 
 const { MEMPOOL_API_URL } = env;
 // Import your Bitcoin RPC logic
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     if (env.WALLET_NETWORK === "mainnet") {
-      return NextResponse.json(
-        { error: "Mainnet not supported" },
-        { status: 400 },
-      );
+      return Response.json({ error: "Mainnet not supported" }, { status: 400 });
     }
-    // Read the raw body from the request
-    const body = req.body ? await req.text() : undefined;
 
-    // Convert headers to a format compatible with `fetch`
-    const headers: Record<string, string> = {};
-    req.headers.forEach((value, key) => {
-      headers[key] = value;
+    const path = new URL(req.url).pathname.replace("/api/proxy/", "");
+    return fetch(`${MEMPOOL_API_URL}/${path}`, {
+      method: req.method,
+      body: await req.text(),
     });
-
-    const res = await rpcHandlerCore(RpcMethods.sendRawTransaction, [body]);
-    if (typeof res === "string") {
-      return new Response(res);
-    }
-    return NextResponse.json(res);
   } catch (error) {
     // good for debugging
     // eslint-disable-next-line no-console
     console.error("Error in POST handler:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
   try {
     if (env.WALLET_NETWORK === "mainnet") {
-      return NextResponse.json(
-        { error: "Mainnet not supported" },
-        { status: 400 },
-      );
+      return Response.json({ error: "Mainnet not supported" }, { status: 400 });
     }
     const url = new URL(req.url);
     const path = url.pathname.replace("/api/proxy/", ""); // Get the dynamic part of the route
-
     // if path ends with "/utxo" then we are looking for the utxo of an address
 
     if (path.endsWith("/utxo")) {
@@ -63,36 +41,32 @@ export async function GET(req: NextRequest) {
 
       // get the second to last part of the url
       const address = path.split("/")[1];
-      if (!address) {
-        return NextResponse.json({ error: "Invalid address" }, { status: 400 });
+      if (!validate(address, Network.regtest)) {
+        return Response.json({ error: "Invalid address" }, { status: 400 });
       }
 
-      const utxos = await getUtxosBitcoinDaemon(address);
-      return NextResponse.json(utxos);
+      return getUtxosBitcoinDaemon(address);
     }
 
     // Proxy all other routes to the base proxy URL
     const proxyUrl = `${MEMPOOL_API_URL}/${path}`;
     const response = await fetch(proxyUrl, {
-      method: req.method,
-      headers: req.headers, // Pass along incoming headers
+      ...req,
     });
 
-    if (response.headers.get("content-type")?.includes("application/json")) {
-      const data = await response.json();
-      return NextResponse.json(data, { status: response.status });
-    }
+    const headers = response.headers;
+    headers.delete("content-encoding");
 
-    if (response.ok) return response;
-
-    return NextResponse.redirect(response.url);
+    return new Response(response.body, {
+      status: response.status,
+      headers,
+    });
   } catch (error) {
     // good for debugging
     // eslint-disable-next-line no-console
     console.error("Error in GET handler:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export const dynamic = "force-dynamic";

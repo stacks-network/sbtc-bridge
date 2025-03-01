@@ -38,12 +38,14 @@ import { DepositStepper } from "./deposit-stepper";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { sendBTCLeather, sendBTCXverse } from "@/util/wallet-utils";
 import useMintCaps from "@/hooks/use-mint-caps";
-import { getAggregateKey } from "@/util/get-aggregate-key";
+import { getAggregateKey } from "@/actions/get-aggregate-key";
 import getBitcoinNetwork from "@/util/get-bitcoin-network";
+import { useAsignaConnect } from "@asigna/btc-connect";
 import { useQuery } from "@tanstack/react-query";
 import getBtcBalance from "@/actions/get-btc-balance";
 import { useDepositStatus } from "@/hooks/use-deposit-status";
 import { useEmilyDeposit } from "@/util/use-emily-deposit";
+import { sendBTCFordefi } from "../util/wallet-utils/src/sendBTC";
 
 /*
   deposit flow has 3 steps
@@ -266,6 +268,8 @@ const DepositFlowConfirm = ({
   const config = useAtomValue(bridgeConfigAtom);
   const { notifyEmily, isPending: isPendingNotifyEmily } = useEmilyDeposit();
 
+  const { openSignBtcAmount } = useAsignaConnect();
+
   const walletInfo = useAtomValue(walletInfoAtom);
   const handleNextClick = async () => {
     try {
@@ -278,14 +282,25 @@ const DepositFlowConfirm = ({
       // user cannot continue if they're not connected
       const paymentAddress = walletInfo.addresses.payment!;
 
-      const reclaimPublicKey = paymentAddress.publicKey;
+      let reclaimPublicKeys = [paymentAddress.publicKey];
+      let signatureThreshold = 1;
+
+      if (walletInfo.selectedWallet === WalletProvider.ASIGNA) {
+        const { threshold, users } = walletInfo.addresses.musig!;
+        signatureThreshold = threshold;
+        reclaimPublicKeys = users.map((user) => user.publicKey);
+      }
 
       // Parse lockTime from env variable
       const parsedLockTime = parseInt(lockTime || "144");
 
       // Create the reclaim script and convert to Buffer
       const reclaimScript = Buffer.from(
-        createReclaimScript(parsedLockTime, reclaimPublicKey),
+        createReclaimScript(
+          parsedLockTime,
+          reclaimPublicKeys,
+          signatureThreshold,
+        ),
       );
 
       const reclaimScriptHex = uint8ArrayToHexString(reclaimScript);
@@ -303,7 +318,8 @@ const DepositFlowConfirm = ({
         maxFee,
         parsedLockTime,
         getBitcoinNetwork(config.WALLET_NETWORK),
-        reclaimPublicKey,
+        reclaimPublicKeys,
+        signatureThreshold,
       );
 
       let txId = "";
@@ -330,6 +346,16 @@ const DepositFlowConfirm = ({
             break;
           case WalletProvider.XVERSE:
             txId = await sendBTCXverse(params);
+            break;
+          case WalletProvider.FORDEFI:
+            txId = await sendBTCFordefi(params);
+            break;
+          case WalletProvider.ASIGNA:
+            txId = (await openSignBtcAmount(
+              params,
+              true,
+              config.MEMPOOL_API_URL + "/",
+            )) as string;
             break;
         }
       } catch (error) {

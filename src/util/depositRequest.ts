@@ -7,6 +7,8 @@ import { Taptree } from "bitcoinjs-lib/src/types";
 import * as bip341 from "bitcoinjs-lib/src/payments/bip341";
 
 import ecc from "@bitcoinerlab/secp256k1";
+import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371";
+import { hexToBytes } from "@stacks/common";
 
 bitcoin.initEccLib(ecc);
 
@@ -59,25 +61,42 @@ export const createDepositScript = (
 
 export const createReclaimScript = (
   lockTime: number,
-  userPublicKey: string,
-): Uint8Array => {
+  leafPubkeys: string[],
+  threshold: number = 1,
+) => {
   const { script, opcodes } = bitcoin;
 
-  // Convert the user public key to a Uint8Array
-  const pubkey = hexToUint8Array(userPublicKey);
-  // remove the 0x04 prefix
-  const schnorrPublicKey = pubkey.slice(1);
+  if (leafPubkeys.length < 1) {
+    throw new Error("Incorrect number of leaf public keys");
+  }
 
-  // Encode lockTime
+  if (threshold > leafPubkeys.length || threshold <= 0) {
+    throw new Error("Incorrect threshold");
+  }
+
+  let leafScriptAsm = [
+    toXOnly(hexToBytes(leafPubkeys[0])),
+    opcodes.OP_CHECKSIG,
+  ];
+
+  if (leafPubkeys.length > 1) {
+    leafScriptAsm = [
+      ...leafScriptAsm,
+      ...leafPubkeys
+        .slice(1)
+        .flatMap((p) => [toXOnly(hexToBytes(p)), opcodes.OP_CHECKSIGADD]),
+      script.number.encode(threshold),
+      opcodes.OP_NUMEQUAL,
+    ];
+  }
+
   const lockTimeEncoded = script.number.encode(lockTime);
 
-  // Return the combined Uint8Array
   const buildScript = script.compile([
     lockTimeEncoded,
     opcodes.OP_CHECKSEQUENCEVERIFY,
     opcodes.OP_DROP,
-    schnorrPublicKey,
-    opcodes.OP_CHECKSIG,
+    ...leafScriptAsm,
   ]);
 
   return buildScript;
@@ -89,13 +108,14 @@ export const createDepositAddress = (
   maxFee: number,
   lockTime: number,
   network: bitcoin.networks.Network,
-  reclaimPublicKey: string,
+  reclaimPublicKeys: string[],
+  threshold: number = 1,
 ): string => {
   const internalPubkey = hexToUint8Array(signerPubKey);
 
   // Create the reclaim script and convert to Buffer
   const reclaimScript = Buffer.from(
-    createReclaimScript(lockTime, reclaimPublicKey),
+    createReclaimScript(lockTime, reclaimPublicKeys, threshold),
   );
 
   // Create the deposit script and convert to Buffer

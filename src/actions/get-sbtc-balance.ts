@@ -1,10 +1,12 @@
+"use server";
 import {
   Cl,
   fetchCallReadOnlyFunction,
   ResponseOkCV,
   UIntCV,
 } from "@stacks/transactions";
-import { StacksNetworkName } from "@stacks/network";
+import { env } from "@/env";
+import { getStacksNetwork } from "@/util/get-stacks-network";
 
 /**
  *
@@ -12,20 +14,22 @@ import { StacksNetworkName } from "@stacks/network";
  */
 export default async function getSbtcTotalBalance({
   address,
-  deployerAddress,
-  network,
 }: {
   address: string;
-  deployerAddress: string;
-  network?: StacksNetworkName;
 }) {
+  const { WALLET_NETWORK, SBTC_CONTRACT_DEPLOYER, STACKS_API_URL } = env;
+  const network = getStacksNetwork(WALLET_NETWORK);
+
   const response = (await fetchCallReadOnlyFunction({
-    contractAddress: deployerAddress,
+    contractAddress: SBTC_CONTRACT_DEPLOYER!,
     contractName: "sbtc-token",
     functionName: "get-balance",
     functionArgs: [Cl.address(address)],
     network: network,
     senderAddress: address,
+    client: {
+      baseUrl: STACKS_API_URL,
+    },
   })) as ResponseOkCV<UIntCV>;
 
   return response.value.value;

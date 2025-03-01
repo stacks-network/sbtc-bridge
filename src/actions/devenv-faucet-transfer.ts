@@ -35,7 +35,9 @@ export const devenvFaucetTransfer = async (value: {
     const utxosRes = await rpcHandlerCore(RpcMethods.scantxoutset, [
       "start",
       [{ desc: `addr(${senderAddy})`, range: 10000 }],
-    ]);
+    ])
+      .then((res) => res.json())
+      .then((res) => res.result);
     // console.log("utxosRes", utxosRes);
 
     if (utxosRes.unspent === 0)
@@ -48,7 +50,9 @@ export const devenvFaucetTransfer = async (value: {
       const rawTxHex = await rpcHandlerCore(RpcMethods.getRawTransaction, [
         utxo.txid,
         true,
-      ]);
+      ])
+        .then((res) => res.json())
+        .then((res) => res.result);
       // console.log("TransferAction -> Raw Transaction Hex:", rawTxHex);
       inputs.push({
         txid: utxo.txid,
@@ -103,9 +107,9 @@ export const devenvFaucetTransfer = async (value: {
     // console.log("Signed Transaction Hex:", signedTx);
 
     // Send the transaction to the Bitcoin network
-    const txId = await rpcHandlerCore(RpcMethods.sendRawTransaction, [
-      signedTx,
-    ]);
+    const txId = await rpcHandlerCore(RpcMethods.sendRawTransaction, [signedTx])
+      .then((res) => res.json())
+      .then((res) => res.result);
     // console.log("Transaction ID:", txId);
 
     return txId;

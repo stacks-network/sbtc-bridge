@@ -4,6 +4,7 @@ import { atom, createStore } from "jotai";
 import { NotificationEventType } from "@/comps/Notifications";
 import getSbtcBridgeConfig from "@/actions/get-sbtc-bridge-config";
 import { atomWithStorage } from "jotai/utils";
+import { AsignaUser } from "./wallet-utils/src/getAddress";
 
 export const store = createStore();
 
@@ -18,6 +19,7 @@ export const bridgeConfigAtom = atom<BridgeConfig>({
   PUBLIC_MEMPOOL_URL: "",
   SUPPORT_LINK: undefined,
   POLLING_INTERVAL: 5000,
+  MEMPOOL_API_URL: "",
 });
 export const depositMaxFeeAtom = atom(80000);
 
@@ -29,6 +31,8 @@ export const eventsAtom = atom<NotificationEventType[]>([]);
 export enum WalletProvider {
   LEATHER = "leather",
   XVERSE = "xverse",
+  ASIGNA = "asigna",
+  FORDEFI = "fordefi",
 }
 
 type Address = {
@@ -43,6 +47,10 @@ export const walletInfoAtom = atomWithStorage<{
     payment: Address | null;
     taproot: Address | null;
     stacks: Address | null;
+    musig: {
+      users: AsignaUser[];
+      threshold: number;
+    } | null;
   };
 }>("walletInfoV3", {
   selectedWallet: null,
@@ -50,5 +58,6 @@ export const walletInfoAtom = atomWithStorage<{
     payment: null,
     taproot: null,
     stacks: null,
+    musig: null,
   },
 });

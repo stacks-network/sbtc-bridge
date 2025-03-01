@@ -1,6 +1,10 @@
 import { request } from "sats-connect";
 import { DefaultNetworkConfigurations } from "@leather.io/models";
 import { hexToBytes, bytesToHex } from "@stacks/common";
+import {
+  getFordefiBTCProviderOrThrow,
+  getLeatherBTCProviderOrThrow,
+} from "./util/btc-provider";
 
 type SignPSBTParams = {
   hex: string;
@@ -8,10 +12,9 @@ type SignPSBTParams = {
   address: string;
 };
 export async function signPSBTLeather({ hex, network }: SignPSBTParams) {
-  const response = await window.LeatherProvider?.request("signPsbt", {
+  const response = await getLeatherBTCProviderOrThrow()?.request("signPsbt", {
     network,
     hex,
-    broadcast: false,
   });
   if (!response) {
     throw new Error(`Error signing PSBT`);
@@ -25,7 +28,6 @@ export async function signPSBTXverse({ hex, address }: SignPSBTParams) {
 
   const response = await request("signPsbt", {
     psbt: base64,
-    broadcast: false,
     signInputs: {
       [address]: [0],
     },
@@ -34,7 +36,24 @@ export async function signPSBTXverse({ hex, address }: SignPSBTParams) {
     throw new Error(`Error signing PSBT`);
   }
 
-  return bytesToHex(
-    Uint8Array.from(atob(response.result.psbt), (c) => c.charCodeAt(0)),
-  );
+  return base64ToHex(response.result.psbt);
+}
+
+export async function signPSBTFordefi({ hex, address }: SignPSBTParams) {
+  const provider = await getFordefiBTCProviderOrThrow();
+  const response = await provider.unisatProvider.signOrSignAndSendPsbt(hex, {
+    autoFinalized: false,
+    toSignInputs: [
+      {
+        index: 0,
+        address,
+      },
+    ],
+  });
+
+  return response.hex;
+}
+
+export function base64ToHex(base64: string) {
+  return bytesToHex(Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)));
 }

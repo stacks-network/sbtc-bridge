@@ -4,6 +4,8 @@ import "./globals.css";
 import LayoutClient from "./layout-client";
 import getSbtcBridgeConfig from "@/actions/get-sbtc-bridge-config";
 import { ChatBubbleLeftIcon } from "@heroicons/react/20/solid";
+import { Metadata } from "next";
+import { env } from "@/env";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,7 +29,6 @@ export default async function RootLayout({
         <meta name="twitter:site" content="@stacks" />
         <meta name="twitter:title" content="sBTC Bridge" />
         <meta name="twitter:description" content="sBTC Bridge" />
-        <meta name="twitter:image" content="/images/icon.png" />
         <meta name="twitter:image:alt" content="sBTC Bridge" />
       </head>
       <body className={inter.className}>
@@ -50,5 +51,9 @@ export default async function RootLayout({
     </html>
   );
 }
+
+export const metadata: Metadata = {
+  metadataBase: new URL(env.BRIDGE_APP_URL),
+};
 
 export const dynamic = "force-dynamic";

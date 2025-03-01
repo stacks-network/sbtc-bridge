@@ -2,7 +2,10 @@ import { AddressPurpose, request, RpcSuccessResponse } from "sats-connect";
 import { DefaultNetworkConfigurations } from "@leather.io/models";
 
 import { Address, BtcAddress } from "@leather.io/rpc";
-import { getLeatherBTCProviderOrThrow } from "./util/btc-provider";
+import {
+  FORDEFI_PROVIDER_ID,
+  getLeatherBTCProviderOrThrow,
+} from "./util/btc-provider";
 
 type Results = {
   /** @description payment address can be native segwit or segwit */
@@ -20,11 +23,25 @@ type Results = {
     address: string;
     publicKey: string;
   };
+  musig: {
+    users: AsignaUser[];
+    threshold: number;
+  } | null;
+};
+
+export type AsignaUser = {
+  _id: string;
+  address: string;
+  __v: number;
+  publicKey: string;
+  walletClass: string;
+  walletType: string;
 };
 
 export type getAddresses = (params?: {
   message?: string;
   network?: DefaultNetworkConfigurations;
+  action?: () => Promise<any>;
 }) => Promise<Results>;
 
 const getAddressByPurpose = (
@@ -36,31 +53,32 @@ export function getWalletAddresses(
   response: RpcSuccessResponse<"wallet_connect">["result"],
 ) {
   const taproot = getAddressByPurpose(response, AddressPurpose.Ordinals);
-  if (!taproot) {
-    throw new Error("Taproot address not found");
-  }
+  // if (!taproot) {
+  //   throw new Error("Taproot address not found");
+  // }
   const payment = getAddressByPurpose(response, AddressPurpose.Payment);
   if (!payment) {
     throw new Error("Payment address not found");
   }
 
   const stacks = getAddressByPurpose(response, AddressPurpose.Stacks);
-  if (!stacks) {
-    throw new Error("Stacks address not found");
-  }
+  // if (!stacks) {
+  //   throw new Error("Stacks address not found");
+  // }
   return {
     taproot: {
-      address: taproot.address,
-      publicKey: taproot.publicKey,
+      address: taproot?.address || "",
+      publicKey: taproot?.publicKey || "",
     },
     payment: {
       address: payment.address,
       publicKey: payment.publicKey,
     },
     stacks: {
-      address: stacks.address,
-      publicKey: stacks.publicKey,
+      address: stacks?.address || "",
+      publicKey: stacks?.publicKey || "",
     },
+    musig: null,
   };
 }
 
@@ -70,7 +88,11 @@ export function getWalletAddresses(
  */
 export const getAddressesXverse: getAddresses = async (params) => {
   const response = await request("wallet_connect", {
-    message: params?.message,
+    addresses: [
+      AddressPurpose.Ordinals,
+      AddressPurpose.Payment,
+      AddressPurpose.Stacks,
+    ],
   });
 
   if (response.status === "error") {
@@ -79,6 +101,52 @@ export const getAddressesXverse: getAddresses = async (params) => {
 
   const result = response.result;
   return getWalletAddresses(result);
+};
+
+export const getAddressesFordefi: getAddresses = async (params) => {
+  const response = await request(
+    "wallet_connect",
+    {
+      addresses: [
+        AddressPurpose.Ordinals,
+        AddressPurpose.Payment,
+        AddressPurpose.Stacks,
+      ],
+    },
+    FORDEFI_PROVIDER_ID,
+  );
+
+  if (response.status === "error") {
+    throw new Error(response.error.message);
+  }
+
+  const result = response.result;
+  return getWalletAddresses(result);
+};
+
+export const getAddressesAsigna: getAddresses = async (params) => {
+  if (!params?.action) {
+    throw new Error("Action is required");
+  }
+  const response = await params.action();
+  return {
+    taproot: {
+      address: "",
+      publicKey: "",
+    },
+    payment: {
+      address: response.address,
+      publicKey: response.publicKey,
+    },
+    stacks: {
+      address: "",
+      publicKey: "",
+    },
+    musig: {
+      users: response.users,
+      threshold: response.threshold,
+    },
+  };
 };
 
 const extractAddressByType = (
@@ -119,5 +187,6 @@ export const getAddressesLeather: getAddresses = async () => {
     payment,
     taproot,
     stacks,
+    musig: null,
   };
 };

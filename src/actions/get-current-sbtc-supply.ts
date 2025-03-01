@@ -16,6 +16,9 @@ export default async function getCurrentSbtcSupply() {
     functionArgs: [],
     network: getStacksNetwork(env.WALLET_NETWORK),
     senderAddress: env.SBTC_CONTRACT_DEPLOYER!,
+    client: {
+      baseUrl: env.STACKS_API_URL,
+    },
   })) as ResponseOkCV<UIntCV>;
 
   return response;

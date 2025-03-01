@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
-import Faqs from "./Faqs";
 // import SelectedSection from "./HomeSelectedHeader";
 import DepositFlow from "./Deposit";
 import { TransferAction } from "./TransferHome";
 import LandingAnimation from "./core/LandingAnimation";
+
 // import { usePathname, useRouter } from "next/navigation";
 
 export enum SECTION {
@@ -64,7 +64,6 @@ const HomeApp = () => {
         )} */}
         {selectedSection === SECTION.TRANSFER && <TransferAction />}
       </LandingAnimation>
-      <Faqs />
     </>
   );
 };

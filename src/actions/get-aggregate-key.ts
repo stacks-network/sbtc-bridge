@@ -1,11 +1,10 @@
-"use client";
+"use server";
 import { fetchCallReadOnlyFunction, BufferCV } from "@stacks/transactions";
-import { bridgeConfigAtom, store } from "./atoms";
-import { getStacksNetwork } from "./get-stacks-network";
+import { getStacksNetwork } from "../util/get-stacks-network";
+import { env } from "@/env";
 
 export async function getAggregateKey() {
-  const { WALLET_NETWORK, SBTC_CONTRACT_DEPLOYER } =
-    store.get(bridgeConfigAtom);
+  const { WALLET_NETWORK, SBTC_CONTRACT_DEPLOYER, STACKS_API_URL } = env;
   const network = getStacksNetwork(WALLET_NETWORK);
 
   const result = (await fetchCallReadOnlyFunction({
@@ -15,6 +14,9 @@ export async function getAggregateKey() {
     functionArgs: [],
     network: network,
     senderAddress: SBTC_CONTRACT_DEPLOYER!,
+    client: {
+      baseUrl: STACKS_API_URL,
+    },
   })) as BufferCV;
 
   return result.value;

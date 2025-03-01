@@ -1,7 +1,7 @@
 "use server";
 
-import { getUtxosBitcoinDaemon } from "@/app/api/proxy/[...proxy]/rpc-handler-core";
 import { env } from "@/env";
+import { bitcoindUtxoFetch, mempoolFetchUntilOk } from "./mempool-api";
 
 export interface BitcoinTransactionResponse {
   txid: string;
@@ -71,9 +71,9 @@ export const scanTxOutSet = async (
   address: string,
 ): Promise<AddressUtxos[]> => {
   if (env.WALLET_NETWORK !== "mainnet") {
-    return getUtxosBitcoinDaemon(address);
+    return bitcoindUtxoFetch(address).then((res) => res.json());
   }
-  const result = await fetch(`${env.MEMPOOL_API_URL}/adddress/${address}/utxo`);
+  const result = await fetch(`${env.MEMPOOL_API_URL}/address/${address}/utxo`);
   return await result.json();
 };
 
@@ -86,6 +86,20 @@ export const getRawTransaction = async (
     return null;
   }
   return await result.json();
+};
+
+export const getTransactionHex = async (txid: string): Promise<string> => {
+  const result = await mempoolFetchUntilOk(
+    `${env.MEMPOOL_API_URL}/tx/${txid}/hex`,
+  );
+  if (result.status === 404) {
+    throw new Error("Transaction not found");
+  }
+
+  if (!result.ok) {
+    throw new Error("Error fetching transaction hex");
+  }
+  return await result.text();
 };
 
 export const getTxRbf = async (txid: string): Promise<boolean> => {

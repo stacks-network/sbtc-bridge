@@ -13,6 +13,7 @@ export default cache(async function getSbtcBridgeConfig() {
   const BANNER_CONTENT = env.BANNER_CONTENT;
   const RECLAIM_LOCK_TIME = env.RECLAIM_LOCK_TIME;
   const PUBLIC_MEMPOOL_URL = env.PUBLIC_MEMPOOL_URL;
+  const MEMPOOL_API_URL = env.MEMPOOL_API_URL;
   const SUPPORT_LINK = env.SUPPORT_LINK;
   const POLLING_INTERVAL = env.POLLING_INTERVAL;
 
@@ -25,5 +26,6 @@ export default cache(async function getSbtcBridgeConfig() {
     PUBLIC_MEMPOOL_URL,
     SUPPORT_LINK,
     POLLING_INTERVAL,
+    MEMPOOL_API_URL,
   };
 });

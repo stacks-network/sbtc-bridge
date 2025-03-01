@@ -18,10 +18,7 @@ export const rpcHandlerCore = async (
   const headers = {
     "Content-Type": "application/json",
     Authorization:
-      "Basic " +
-      Buffer.from(`${BITCOIN_RPC_USER_NAME}:${BITCOIN_RPC_PASSWORD}`).toString(
-        "base64",
-      ),
+      "Basic " + btoa(`${BITCOIN_RPC_USER_NAME}:${BITCOIN_RPC_PASSWORD}`),
   };
 
   const body = JSON.stringify({
@@ -38,12 +35,7 @@ export const rpcHandlerCore = async (
       body: body,
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.result;
+    return response;
   } catch (err) {
     // good for debugging
     // eslint-disable-next-line no-console
@@ -55,7 +47,12 @@ export const rpcHandlerCore = async (
 export async function getUtxosBitcoinDaemon(address: string) {
   const args = ["start", [{ desc: `addr(${address})`, range: 10000 }]];
 
-  const result = await rpcHandlerCore(RpcMethods.scantxoutset, args);
+  const result = await rpcHandlerCore(RpcMethods.scantxoutset, args)
+    .then((res) => res.json())
+    .then((res) => res.result);
+  if (!result || !result.unspents || result.unspents.length === 0) {
+    return Response.json([]);
+  }
   const utxos = result.unspents.map((utxo: any) => ({
     txid: utxo.txid,
     vout: utxo.vout,
@@ -68,5 +65,5 @@ export async function getUtxosBitcoinDaemon(address: string) {
     },
     value: Math.round(utxo.amount * 1e8), // Convert BTC amount to satoshis
   }));
-  return utxos;
+  return Response.json(utxos);
 }

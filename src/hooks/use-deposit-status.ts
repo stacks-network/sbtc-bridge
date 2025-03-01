@@ -67,6 +67,8 @@ export function useDepositStatus(txId: string) {
           txId,
           emilyURL: emilyUrl!,
         });
+        setEmilyResponse(txInfo);
+
         if (!info) {
           const rbf = await getTxRbf(txId);
           const rbfTxId = (rbf as any).replacements.tx.txid;
@@ -83,8 +85,6 @@ export function useDepositStatus(txId: string) {
         setStatusResponse(info);
 
         if (info.status.confirmed) {
-          setEmilyResponse(txInfo);
-
           if (txInfo.status === DepositStatus.Completed) {
             setTransferTxStatus(DepositStatus.Completed);
             clearInterval(interval);

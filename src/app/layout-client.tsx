@@ -9,6 +9,8 @@ import { queryClient } from "@/query/client";
 import { Suspense, useEffect } from "react";
 import { bridgeConfigAtom } from "@/util/atoms";
 
+import { AsignaSignActionModals } from "@asigna/btc-connect";
+
 import Footer from "@/comps/footer";
 import ReskinHeader from "@/comps/reskin/core/header-v2";
 import Header from "@/comps/Header";
@@ -52,6 +54,19 @@ export default function LayoutClient({
                 <Footer supportLink={config.SUPPORT_LINK} />
               </>
             )}
+
+            {children}
+            <a
+              key="faqs"
+              href="https://docs.stacks.co/concepts/sbtc/sbtc-faq"
+              target="_blank"
+              rel="noreferrer"
+              className="text-white font-light block text-xl font-Matter px-20 py-2 bg-[#fd8341] rounded opacity-90"
+            >
+              FAQs
+            </a>
+            <Footer supportLink={config.SUPPORT_LINK} />
+            <AsignaSignActionModals />
           </Suspense>
         </main>
       </QueryClientProvider>
