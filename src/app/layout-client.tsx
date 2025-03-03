@@ -10,7 +10,8 @@ import { Suspense, useEffect } from "react";
 import { bridgeConfigAtom } from "@/util/atoms";
 import Header from "@/comps/Header";
 import Footer from "@/comps/footer";
-import { AsignaSignActionModals } from "@asigna/btc-connect";
+import { AsignaSignActionModals, useAsignaConnect } from "@asigna/btc-connect";
+import { setupAsigna } from "../util/wallet-polyfills";
 
 export default function LayoutClient({
   children,
@@ -19,8 +20,13 @@ export default function LayoutClient({
   children: React.ReactNode;
   config: BridgeConfig;
 }>) {
+  const asignaConnect = useAsignaConnect();
+
   useEffect(() => {
     store.set(bridgeConfigAtom, config);
+
+    setupAsigna(asignaConnect, config);
+
     // this is a setup step no need to run it twice
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

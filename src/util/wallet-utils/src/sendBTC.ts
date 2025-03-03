@@ -1,74 +1,25 @@
-import {
-  getProviderOrThrow,
-  RpcErrorResponse,
-  RpcSuccessResponse,
-} from "sats-connect";
-import {
-  getFordefiBTCProviderOrThrow,
-  getLeatherBTCProviderOrThrow,
-} from "./util/btc-provider";
-import { DefaultNetworkConfigurations } from "@leather.io/models";
+import { request } from "@stacks/connect";
 
 type Payload = {
   recipient: string;
   amountInSats: number;
-  network?: DefaultNetworkConfigurations;
+  network?: string;
 };
 
-export async function sendBTCLeather({
-  amountInSats,
-  recipient,
-  network,
-}: Payload) {
-  const btc = getLeatherBTCProviderOrThrow();
-  const response = await btc.request("sendTransfer", {
+export async function sendBTC({ amountInSats, recipient, network }: Payload) {
+  const result = await request("sendTransfer", {
     recipients: [
       {
         address: recipient,
-        amount: String(amountInSats),
+        amount: amountInSats,
       },
     ],
     network,
-  });
+  } as any);
 
-  const result = response.result;
-  return result.txid.replace(/"|'/g, "");
-}
+  const values = Object.entries(result)
+  // why you might ask? ForDefi return txId instead of txid
+  const txId = values.filter(([key, value]) => key.toLowerCase() === "txid")[0][1]
 
-export async function sendBTCXverse({ amountInSats, recipient }: Payload) {
-  const btc = await getProviderOrThrow();
-  const response = await btc.request("sendTransfer", {
-    recipients: [
-      {
-        address: recipient,
-        amount: amountInSats,
-      },
-    ],
-  });
-
-  const error = (response as RpcErrorResponse).error;
-  if (error) {
-    throw new Error(error.message);
-  }
-  const result = (response as RpcSuccessResponse<"sendTransfer">).result;
-  return result.txid;
-}
-
-export async function sendBTCFordefi({ amountInSats, recipient }: Payload) {
-  const btc = await getFordefiBTCProviderOrThrow();
-  const response = await btc.request("sendTransfer", {
-    recipients: [
-      {
-        address: recipient,
-        amount: amountInSats,
-      },
-    ],
-  });
-
-  const error = (response as RpcErrorResponse).error;
-  if (error) {
-    throw new Error(error.message);
-  }
-  const result = (response as any).result;
-  return result.txId;
+  return txId
 }

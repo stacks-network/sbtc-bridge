@@ -4,7 +4,15 @@ import { atom, createStore } from "jotai";
 import { NotificationEventType } from "@/comps/Notifications";
 import getSbtcBridgeConfig from "@/actions/get-sbtc-bridge-config";
 import { atomWithStorage } from "jotai/utils";
-import { AsignaUser } from "./wallet-utils/src/getAddress";
+
+type AsignaUser = {
+  _id: string;
+  address: string;
+  __v: number;
+  publicKey: string;
+  walletClass: string;
+  walletType: string;
+};
 
 export const store = createStore();
 
@@ -22,8 +30,6 @@ export const bridgeConfigAtom = atom<BridgeConfig>({
   MEMPOOL_API_URL: "",
 });
 export const depositMaxFeeAtom = atom(80000);
-
-export const showConnectWalletAtom = atom<boolean>(false);
 
 export const showTosAtom = atom<boolean>(false);
 

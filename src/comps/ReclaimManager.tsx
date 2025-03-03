@@ -6,13 +6,8 @@ import { Heading, SubText } from "./core/Heading";
 import { useShortAddress } from "@/hooks/use-short-address";
 import { InformationCircleIcon } from "@heroicons/react/16/solid";
 import { PrimaryButton } from "./core/FlowButtons";
-import { useAtomValue, useSetAtom } from "jotai";
-import {
-  bridgeConfigAtom,
-  walletInfoAtom,
-  showConnectWalletAtom,
-  WalletProvider,
-} from "@/util/atoms";
+import { useAtomValue } from "jotai";
+import { bridgeConfigAtom, walletInfoAtom } from "@/util/atoms";
 
 import { useNotifications } from "@/hooks/use-notifications";
 import { NotificationStatusType } from "./Notifications";
@@ -26,13 +21,10 @@ import {
   transmitRawTransaction,
 } from "@/actions/bitcoinClient";
 import ReclaimStepper from "./reclaim/reclaim-stepper";
-import {
-  signPSBTFordefi,
-  signPSBTLeather,
-  signPSBTXverse,
-} from "@/util/wallet-utils/src/sign-psbt";
-import { useAsignaConnect } from "@asigna/btc-connect";
 import { Psbt } from "bitcoinjs-lib";
+import { signPSBTRequest } from "@/util/wallet-utils";
+import { useConnectWallet } from "../hooks/use-connect-wallet";
+
 /*
   Goal : User server side rendering as much as possible
   - Break down the components into either their own file or smaller components
@@ -329,9 +321,8 @@ const ReclaimDeposit = ({
 }: ReclaimDepositProps) => {
   const { notify } = useNotifications();
   const walletInfo = useAtomValue(walletInfoAtom);
-  const setShowWallet = useSetAtom(showConnectWalletAtom);
   const router = useRouter();
-  const { openSignPsbt } = useAsignaConnect();
+  const connectWallet = useConnectWallet();
 
   const { WALLET_NETWORK: walletNetwork, SUPPORT_LINK } =
     useAtomValue(bridgeConfigAtom);
@@ -344,7 +335,7 @@ const ReclaimDeposit = ({
       const btcAddress = getWalletAddress();
 
       if (!btcAddress) {
-        return setShowWallet(true);
+        return connectWallet();
       }
 
       // FIXME: move to util or its own file
@@ -367,49 +358,23 @@ const ReclaimDeposit = ({
   };
 
   const signPSBT = async (psbtHex: string) => {
-    // const signPsbtRequestParams: SignPsbtRequestParams = {
-    //   hex: psbtHex,
-    //   network: walletNetwork,
-
-    //   broadcast: false,
-    // };
-
-    // const response = await window.LeatherProvider?.request(
-    //   "signPsbt",
-    //   signPsbtRequestParams,
-    // );
     const params = {
       hex: psbtHex,
       address: walletInfo.addresses.payment!.address,
       network: walletNetwork,
     };
-    let signedPsbt: Psbt | undefined = undefined;
-    if (walletInfo.selectedWallet === WalletProvider.LEATHER) {
-      signedPsbt = Psbt.fromHex(await signPSBTLeather(params));
-    }
-    if (walletInfo.selectedWallet === WalletProvider.XVERSE) {
-      signedPsbt = Psbt.fromHex(await signPSBTXverse(params));
-    }
-    if (walletInfo.selectedWallet === WalletProvider.FORDEFI) {
-      signedPsbt = Psbt.fromHex(await signPSBTFordefi(params));
-    }
-    if (walletInfo.selectedWallet === WalletProvider.ASIGNA) {
-      signedPsbt = (await openSignPsbt(
-        Psbt.fromHex(psbtHex).toBase64(),
-        false,
-      )) as any;
-    }
 
-    if (signedPsbt) {
-      const finalizedTxHex = finalizePsbt(signedPsbt);
-
-      await broadcastTransaction(finalizedTxHex);
-    } else {
-      notify({
+    const signedPsbtHex = await signPSBTRequest(params);
+    if (!signedPsbtHex) {
+      return notify({
         type: NotificationStatusType.ERROR,
         message: "Error signing PSBT",
       });
     }
+
+    const signedPsbt = Psbt.fromHex(signedPsbtHex);
+    const finalizedTxHex = finalizePsbt(signedPsbt);
+    await broadcastTransaction(finalizedTxHex);
   };
 
   const broadcastTransaction = async (finalizedTxHex: string) => {

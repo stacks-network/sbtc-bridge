@@ -1,10 +1,5 @@
-export { getAddressesLeather, getAddressesXverse } from "./src/getAddress";
-export { checkAvailableWallets, WalletType } from "./src/checkWallets";
-
-export { sendBTCLeather, sendBTCXverse } from "./src/sendBTC";
+export { sendBTC } from "./src/sendBTC";
+export { signPSBTRequest } from "./src/sign-psbt";
 export {
-  callContractFordefi,
-  callContractLeather,
-  callContractXverse,
-  callContractAsigna,
+  callContract
 } from "./src/callContract";

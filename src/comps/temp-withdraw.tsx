@@ -12,7 +12,7 @@ import { bytesToHex, hexToBytes } from "@stacks/common";
 
 import * as bitcoin from "bitcoinjs-lib";
 import { useAtomValue } from "jotai";
-import { bridgeConfigAtom, walletInfoAtom, WalletProvider } from "@/util/atoms";
+import { bridgeConfigAtom, walletInfoAtom } from "@/util/atoms";
 import {
   bufferCV,
   makeUnsignedContractCall,
@@ -23,10 +23,7 @@ import {
 } from "@stacks/transactions";
 import { serverBroadcastTx } from "@/actions/server-broadcast-tx";
 import {
-  callContractAsigna,
-  callContractFordefi,
-  callContractLeather,
-  callContractXverse,
+  callContract
 } from "@/util/wallet-utils";
 import { getStacksNetwork } from "@/util/get-stacks-network";
 
@@ -114,7 +111,7 @@ const data: NameKeysInfo[] = [
 
 const BasicWithdraw = () => {
   const [txId, setTxId] = useState<string | null>(null);
-  const { addresses, selectedWallet } = useAtomValue(walletInfoAtom);
+  const { addresses } = useAtomValue(walletInfoAtom);
   const router = useRouter();
 
   const { WALLET_NETWORK, SBTC_CONTRACT_DEPLOYER } =
@@ -176,14 +173,7 @@ const BasicWithdraw = () => {
       postConditionMode: PostConditionMode.Allow,
     });
 
-    const signTx = {
-      [WalletProvider.XVERSE]: callContractXverse,
-      [WalletProvider.LEATHER]: callContractLeather,
-      [WalletProvider.FORDEFI]: callContractFordefi,
-      [WalletProvider.ASIGNA]: callContractAsigna,
-    }[selectedWallet!];
-
-    const signedTx = await signTx({
+    const signedTx = await callContract({
       txHex: serializeTransaction(transaction),
       network: stacksNetwork,
     });

@@ -1,9 +1,11 @@
+import { walletInfoAtom } from "@/util/atoms";
 import { useFormik } from "formik";
-import { PrimaryButton } from "./FlowButtons";
-import { useAtomValue, useSetAtom } from "jotai";
-import { showConnectWalletAtom, walletInfoAtom } from "@/util/atoms";
+import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 import { Schema as YupSchema } from "yup";
+import { PrimaryButton } from "./FlowButtons";
+import { useConnectWallet } from "../../hooks/use-connect-wallet";
+
 // this is supposed to be as reusable as possible given all the flows are very similar in order and action
 type FlowFormProps = {
   nameKey: string;
@@ -29,7 +31,7 @@ export const FlowForm = ({
 }: FlowFormProps) => {
   const walletInfo = useAtomValue(walletInfoAtom);
   const isConnected = useMemo(() => !!walletInfo.selectedWallet, [walletInfo]);
-  const setShowConnectWallet = useSetAtom(showConnectWalletAtom);
+  const connectWallet = useConnectWallet();
 
   const formik = useFormik({
     initialValues: {
@@ -74,7 +76,7 @@ export const FlowForm = ({
           <button
             disabled={disabled}
             type="button"
-            onClick={() => setShowConnectWallet(true)}
+            onClick={() => connectWallet()}
             className="bg-orange px-4 py-2 rounded-md font-Matter text-xs font-semibold tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
           >
             CONNECT WALLET

@@ -36,16 +36,14 @@ import { useShortAddress } from "@/hooks/use-short-address";
 import { useNotifications } from "@/hooks/use-notifications";
 import { DepositStepper } from "./deposit-stepper";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { sendBTCLeather, sendBTCXverse } from "@/util/wallet-utils";
+import { sendBTC } from "@/util/wallet-utils";
 import useMintCaps from "@/hooks/use-mint-caps";
 import { getAggregateKey } from "@/actions/get-aggregate-key";
 import getBitcoinNetwork from "@/util/get-bitcoin-network";
-import { useAsignaConnect } from "@asigna/btc-connect";
 import { useQuery } from "@tanstack/react-query";
 import getBtcBalance from "@/actions/get-btc-balance";
 import { useDepositStatus } from "@/hooks/use-deposit-status";
 import { useEmilyDeposit } from "@/util/use-emily-deposit";
-import { sendBTCFordefi } from "../util/wallet-utils/src/sendBTC";
 
 /*
   deposit flow has 3 steps
@@ -268,8 +266,6 @@ const DepositFlowConfirm = ({
   const config = useAtomValue(bridgeConfigAtom);
   const { notifyEmily, isPending: isPendingNotifyEmily } = useEmilyDeposit();
 
-  const { openSignBtcAmount } = useAsignaConnect();
-
   const walletInfo = useAtomValue(walletInfoAtom);
   const handleNextClick = async () => {
     try {
@@ -340,24 +336,7 @@ const DepositFlowConfirm = ({
           },
         });
 
-        switch (walletInfo.selectedWallet) {
-          case WalletProvider.LEATHER:
-            txId = await sendBTCLeather(params);
-            break;
-          case WalletProvider.XVERSE:
-            txId = await sendBTCXverse(params);
-            break;
-          case WalletProvider.FORDEFI:
-            txId = await sendBTCFordefi(params);
-            break;
-          case WalletProvider.ASIGNA:
-            txId = (await openSignBtcAmount(
-              params,
-              true,
-              config.MEMPOOL_API_URL + "/",
-            )) as string;
-            break;
-        }
+        txId = await sendBTC(params);
       } catch (error) {
         let errorMessage = error;
         console.warn(error);
